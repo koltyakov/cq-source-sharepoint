@@ -6,7 +6,6 @@ import (
 	"github.com/cloudquery/plugin-sdk/plugins/source"
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/koltyakov/cq-source-sharepoint/client"
-	"github.com/koltyakov/cq-source-sharepoint/resources"
 )
 
 var (
@@ -17,12 +16,11 @@ func Plugin() *source.Plugin {
 	return source.NewPlugin(
 		"sharepoint",
 		Version,
-		schema.Tables{
-			resources.SampleTable(),
-		},
+		nil,
 		client.New,
 		source.WithDynamicTableOption(getDynamicTables),
 		source.WithUnmanaged(),
+		source.WithNoInternalColumns(),
 	)
 }
 
