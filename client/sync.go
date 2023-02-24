@@ -40,8 +40,8 @@ func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetri
 	}
 	logger.Debug().Strs("cols", colsToSelect).Msg("selecting columns from list")
 
-	list := c.SP.Web().GetList("Lists/" + meta.Title)
-	items, err := list.Items().Select(strings.Join(colsToSelect, ", ")).GetPaged()
+	list := c.SP.Web().GetList(meta.Title) // ToDo: Fix to server relative URL
+	items, err := list.Items().Select(strings.Join(colsToSelect, ",")).GetPaged()
 
 	for {
 		if err != nil {

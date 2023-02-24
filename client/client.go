@@ -68,13 +68,13 @@ func New(_ context.Context, logger zerolog.Logger, s specs.Source, opts source.O
 		csr:        caser.New(),
 	}
 
-	if len(pluginSpec.Lists) == 0 {
-		var err error
-		pluginSpec.Lists, err = cl.getAllLists()
-		if err != nil {
-			return nil, err
-		}
-	}
+	// if len(pluginSpec.Lists) == 0 {
+	// 	var err error
+	// 	pluginSpec.Lists, err = cl.getAllLists()
+	// 	if err != nil {
+	// 		return nil, err
+	// 	}
+	// }
 
 	cl.Tables = make(schema.Tables, 0, len(pluginSpec.Lists))
 	cl.tablesMap = make(map[string]tableMeta, len(pluginSpec.Lists))
@@ -84,8 +84,8 @@ func New(_ context.Context, logger zerolog.Logger, s specs.Source, opts source.O
 			return nil, fmt.Errorf("failed to get table from list: %w", err)
 		}
 		if table != nil {
-			//b, _ := json.Marshal(meta.ColumnMap)
-			//fmt.Println(string(b))
+			// b, _ := json.Marshal(meta.ColumnMap)
+			// fmt.Println(string(b))
 			cl.Logger.Debug().Str("table", table.Name).Str("list", title).Str("columns", table.Columns.String()).Msg("columns for table")
 
 			cl.Tables = append(cl.Tables, table)

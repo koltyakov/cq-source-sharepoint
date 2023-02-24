@@ -4,43 +4,42 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/caser"
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
 )
 
-func (c *Client) getAllLists() ([]string, error) {
-	lists, err := c.SP.Web().Lists().Get()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get lists: %w", err)
-	}
+// func (c *Client) getAllLists() ([]string, error) {
+// 	lists, err := c.SP.Web().Lists().Get()
+// 	if err != nil {
+// 		return nil, fmt.Errorf("failed to get lists: %w", err)
+// 	}
 
-	listsData := lists.Data()
+// 	listsData := lists.Data()
 
-	listOfLists := make([]string, 0, len(listsData))
-	normalizedNames := make(map[string]struct{})
-	for _, list := range listsData {
-		d := list.Data()
-		name := normalizeName(d.Title)
-		if _, ok := normalizedNames[name]; ok {
-			c.Logger.Warn().Msgf("List %q has been normalized to %q, but another list has already been normalized to that name. skipping %q", d.Title, name, d.Title)
-			continue
-		}
+// 	listOfLists := make([]string, 0, len(listsData))
+// 	normalizedNames := make(map[string]struct{})
+// 	for _, list := range listsData {
+// 		d := list.Data()
+// 		name := normalizeName(d.Title)
+// 		if _, ok := normalizedNames[name]; ok {
+// 			c.Logger.Warn().Msgf("List %q has been normalized to %q, but another list has already been normalized to that name. skipping %q", d.Title, name, d.Title)
+// 			continue
+// 		}
 
-		normalizedNames[name] = struct{}{}
-		listOfLists = append(listOfLists, d.Title)
-	}
+// 		normalizedNames[name] = struct{}{}
+// 		listOfLists = append(listOfLists, d.Title)
+// 	}
 
-	for k := range c.pluginSpec.ListFields {
-		name := normalizeName(k)
-		if _, ok := normalizedNames[name]; !ok {
-			return nil, fmt.Errorf("found list_fields for non-existent list in spec: %q", k)
-		}
-	}
+// 	for k := range c.pluginSpec.ListFields {
+// 		name := normalizeName(k)
+// 		if _, ok := normalizedNames[name]; !ok {
+// 			return nil, fmt.Errorf("found list_fields for non-existent list in spec: %q", k)
+// 		}
+// 	}
 
-	return listOfLists, nil
-}
+// 	return listOfLists, nil
+// }
 
 func (c *Client) tableFromList(title string) (*schema.Table, *tableMeta, error) {
 	name := normalizeName(title)
@@ -50,7 +49,7 @@ func (c *Client) tableFromList(title string) (*schema.Table, *tableMeta, error) 
 	}
 	logger := c.Logger.With().Str("table", table.Name).Logger()
 
-	ld := c.SP.Web().GetList("Lists/" + title)
+	ld := c.SP.Web().GetList(title)
 	fields, err := ld.Fields().Get()
 	if err != nil {
 		if IsNotFound(err) { // Not found is ok, just skip this table
@@ -146,9 +145,11 @@ func columnFromField(field *api.FieldInfo, logger zerolog.Logger) schema.Column 
 }
 
 func normalizeName(name string) string {
-	csr := caser.New()
-	s := csr.ToSnake(name)
+	// csr := caser.New()
+	// s := csr.ToSnake(name) // no need in snake case at least so far
+	s := strings.ToLower(name)
 	s = strings.ReplaceAll(s, " ", "_")
 	s = strings.ReplaceAll(s, "-", "_")
+	s = strings.ReplaceAll(s, "/", "_")
 	return s
 }

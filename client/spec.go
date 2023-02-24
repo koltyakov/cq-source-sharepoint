@@ -8,7 +8,10 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// ToDo: Design spec to correcpond SharePoint specifics
 type Spec struct {
+	// ToDo: add support for other auth strategies, it also should be in a separate `auth` section not on the top level
+	// or probably introduce a connection_string like approach
 	SiteURL      string `json:"site_url"`
 	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
@@ -16,11 +19,12 @@ type Spec struct {
 	// Lists to fetch, if empty all lists will be fetched
 	Lists []string `json:"lists"`
 
+	// ToDo: must be a nested props of a list, otherwise it's syntatically convinuent and not logical having spread entity configs in different places
 	// ListFields is a map of list name to list of fields to fetch, if empty all DefaultFields will be fetched
 	ListFields map[string][]string `json:"list_fields"`
 
-	// IgnoreFields is the fields to always ignore
-	IgnoreFields []string `json:"ignore_fields"`
+	// Common service fields to ignore
+	ignoreFields []string // no need it as a public property
 
 	// pkColumn is the primary key column name, defaults to "ID"
 	pkColumn string
@@ -31,15 +35,14 @@ func (s *Spec) SetDefaults() {
 		s.ListFields = make(map[string][]string)
 	}
 
-	if len(s.IgnoreFields) == 0 {
-		s.IgnoreFields = []string{
-			"ComplianceAssetId",
-			"Attachments",
-			"AppAuthor",
-			"AppEditor",
-			"ItemChildCount",
-			"FolderChildCount",
-		}
+	s.ignoreFields = []string{
+		"Id",
+		"ComplianceAssetId",
+		"Attachments",
+		"AppAuthor",
+		"AppEditor",
+		"ItemChildCount",
+		"FolderChildCount",
 	}
 
 	s.pkColumn = "ID"
@@ -54,6 +57,9 @@ func (s Spec) Validate() error {
 	}
 	if s.SiteURL == "" {
 		return fmt.Errorf("site_url is required")
+	}
+	if len(s.Lists) == 0 {
+		return fmt.Errorf("lists is required")
 	}
 
 	dupeLists := make(map[string]struct{}, len(s.Lists))
@@ -78,7 +84,8 @@ func (s Spec) Validate() error {
 }
 
 func (s Spec) ShouldSelectField(list string, field api.FieldInfo) bool {
-	if funk.ContainsString(s.IgnoreFields, field.InternalName) {
+	// ToDo: Only ignore until explicitly selected
+	if funk.ContainsString(s.ignoreFields, field.InternalName) {
 		return false
 	}
 
