@@ -1,0 +1,19 @@
+kind: source
+spec:
+  name: "sharepoint"
+  registry: "local"
+  path: "../bin/cq-source-sharepoint"
+  version: "development"
+  destinations: ["${CQ_DESTINATION}"]
+  spec:
+    site_url: ${SP_SITE_URL}
+    client_id: ${SP_CLIENT_ID}
+    client_secret: ${SP_CLIENT_SECRET}
+    lists:
+      - Lists/ListA
+      - Lists/DataTypes
+    list_fields:
+      Lists/ListA:
+        - Title
+        - Field1
+        

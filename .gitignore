@@ -14,12 +14,12 @@
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-
 .DS_Store
 
 cq-source-sharepoint
 
-dist
+dist/
 *.log
 example.yml
 .cq/
+bin/
