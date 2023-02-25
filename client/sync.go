@@ -23,22 +23,22 @@ func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *
 	for _, table := range c.Tables {
 		meta := c.tablesMap[table.Name]
 		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.syncTable(ctx, m, res, table, meta); err != nil {
+		if err := c.syncList(ctx, m, res, table, meta); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
 	return nil
 }
 
-func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table, meta ListModel) error {
+func (c *Client) syncList(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table, listModel ListModel) error {
 	logger := c.Logger.With().Str("table", table.Name).Logger()
 
-	logger.Debug().Strs("cols", meta.ListSpec.Select).Msg("selecting columns from list")
+	logger.Debug().Strs("cols", listModel.ListSpec.Select).Msg("selecting columns from list")
 
-	list := c.SP.Web().GetList(meta.ListURI)
+	list := c.SP.Web().GetList(listModel.ListURI)
 	items, err := list.Items().
-		Select(strings.Join(meta.ListSpec.Select, ",")).
-		Expand(strings.Join(meta.ListSpec.Expand, ",")).
+		Select(strings.Join(listModel.ListSpec.Select, ",")).
+		Expand(strings.Join(listModel.ListSpec.Expand, ",")).
 		Top(2000).GetPaged()
 
 	for {
@@ -61,7 +61,7 @@ func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetri
 			colVals := make([]any, len(table.Columns))
 
 			for i, col := range table.Columns {
-				prop := meta.FieldsMap[col.Name]
+				prop := listModel.FieldsMap[col.Name]
 				colVals[i] = getRespValByProp(itemMap, prop)
 			}
 
