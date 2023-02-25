@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
 
 	"github.com/cloudquery/plugin-sdk/plugins/source"
 	"github.com/cloudquery/plugin-sdk/schema"
-	"github.com/koltyakov/gosip/api"
 	"github.com/thoas/go-funk"
 )
 
@@ -31,23 +31,19 @@ func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *
 	return nil
 }
 
-func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table, meta tableMeta) error {
+func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table, meta ListModel) error {
 	logger := c.Logger.With().Str("table", table.Name).Logger()
 
-	colsToSelect := make([]string, 0, len(meta.ColumnMap))
-	for _, v := range meta.ColumnMap {
-		colsToSelect = append(colsToSelect, v.SharepointName)
-	}
-	logger.Debug().Strs("cols", colsToSelect).Msg("selecting columns from list")
+	logger.Debug().Strs("cols", meta.ListSpec.Select).Msg("selecting columns from list")
 
-	list := c.SP.Web().GetList(meta.Title) // ToDo: Fix to server relative URL
-	items, err := list.Items().Select(strings.Join(colsToSelect, ",")).GetPaged()
+	list := c.SP.Web().GetList(meta.ListURI)
+	items, err := list.Items().
+		Select(strings.Join(meta.ListSpec.Select, ",")).
+		Expand(strings.Join(meta.ListSpec.Expand, ",")).
+		Top(2000).GetPaged()
 
 	for {
 		if err != nil {
-			if IsNotFound(err) {
-				return nil
-			}
 			metrics.Errors++
 			return fmt.Errorf("failed to get items: %w", err)
 		}
@@ -64,37 +60,10 @@ func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetri
 			logger.Debug().Strs("keys", ks).Msg("item keys")
 
 			colVals := make([]any, len(table.Columns))
-			var notFoundCols []string
 
 			for i, col := range table.Columns {
-				colMeta := meta.ColumnMap[col.Name]
-				val, ok := itemMap[colMeta.SharepointName]
-				if !ok {
-					notFoundCols = append(notFoundCols, colMeta.SharepointName)
-					colVals[i] = nil
-					continue
-				}
-				colVals[i] = convertSharepointType(colMeta, val)
-				delete(itemMap, colMeta.SharepointName)
-			}
-
-			if len(notFoundCols) > 0 {
-				sort.Strings(notFoundCols)
-				logger.Warn().Strs("missing_columns", notFoundCols).Msg("missing columns in result")
-			}
-			if len(itemMap) > 0 {
-				// Remove any extra fields that are already ignored but still found in the response
-				for k := range itemMap {
-					if !c.pluginSpec.ShouldSelectField(meta.Title, api.FieldInfo{InternalName: k}) {
-						delete(itemMap, k)
-					}
-				}
-				delete(itemMap, "Id") // remove "Id", we should already have "ID"
-			}
-			if len(itemMap) > 0 {
-				ks := funk.Keys(itemMap).([]string)
-				sort.Strings(ks)
-				logger.Warn().Strs("extra_columns", ks).Msg("extra columns found in result")
+				prop := meta.FieldsMap[col.Name]
+				colVals[i] = resolveValueByProp(itemMap, prop)
 			}
 
 			resource, err := resourceFromValues(table, colVals)
@@ -130,11 +99,23 @@ func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, er
 	return resource, nil
 }
 
-func convertSharepointType(colMeta columnMeta, val any) any {
-	switch colMeta.SharepointType {
-	case "Currency":
-		return fmt.Sprintf("%f", val)
-	default:
+// Extracts value from map by property path
+func resolveValueByProp(val map[string]any, prop string) any {
+	if val == nil {
+		return nil
+	}
+
+	if strings.Contains(prop, "/") {
+		parts := strings.Split(prop, "/")
+		for _, part := range parts {
+			v := val[part]
+			if reflect.TypeOf(v).Kind() != reflect.Map {
+				return v
+			}
+			val = v.(map[string]any)
+		}
 		return val
 	}
+
+	return val[prop]
 }

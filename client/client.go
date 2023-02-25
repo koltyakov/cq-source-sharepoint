@@ -2,91 +2,81 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
-	"github.com/cloudquery/plugin-sdk/caser"
 	"github.com/cloudquery/plugin-sdk/plugins/source"
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/cloudquery/plugin-sdk/specs"
 	"github.com/koltyakov/gosip"
 	"github.com/koltyakov/gosip/api"
-	strategy "github.com/koltyakov/gosip/auth/addin"
+	"github.com/koltyakov/gosip/auth"
 	"github.com/rs/zerolog"
 )
 
 type Client struct {
-	Logger     zerolog.Logger
-	Tables     schema.Tables
-	SP         *api.SP
-	spec       specs.Source
-	pluginSpec Spec
-	opts       source.Options
-	csr        *caser.Caser
+	Logger zerolog.Logger
+	Tables schema.Tables
+	SP     *api.SP
 
-	tablesMap map[string]tableMeta // normalized table name to table metadata
+	src  specs.Source
+	spec Spec
+	opts source.Options
+
+	tablesMap map[string]ListModel // normalized table name to table metadata
 }
 
-type tableMeta struct {
-	Title     string
-	ColumnMap map[string]columnMeta // cq column name to column metadata
-}
-
-type columnMeta struct {
-	SharepointName string
-	SharepointType string
+type ListModel struct {
+	ListURI   string
+	ListSpec  ListSpec
+	FieldsMap map[string]string // cq column name to column metadata
 }
 
 func (c *Client) ID() string {
-	return c.spec.Name
+	return c.src.Name
 }
 
-func New(_ context.Context, logger zerolog.Logger, s specs.Source, opts source.Options) (schema.ClientMeta, error) {
-	var pluginSpec Spec
+func New(_ context.Context, logger zerolog.Logger, src specs.Source, opts source.Options) (schema.ClientMeta, error) {
+	var spec Spec
 
-	if err := s.UnmarshalSpec(&pluginSpec); err != nil {
+	if err := src.UnmarshalSpec(&spec); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plugin spec: %w", err)
 	}
-	pluginSpec.SetDefaults()
-	if err := pluginSpec.Validate(); err != nil {
+
+	spec.SetDefaults()
+
+	if err := spec.Validate(); err != nil {
 		return nil, err
 	}
 
-	auth := &strategy.AuthCnfg{
-		SiteURL:      pluginSpec.SiteURL,
-		ClientID:     pluginSpec.ClientID,
-		ClientSecret: pluginSpec.ClientSecret,
+	jsonCreds, _ := json.Marshal(spec.Auth.Creds)
+	authCnfg, err := auth.NewAuthCnfg(spec.Auth.Strategy, jsonCreds)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create auth config: %w", err)
 	}
-	client := &gosip.SPClient{AuthCnfg: auth}
+
+	client := &gosip.SPClient{AuthCnfg: authCnfg}
 	sp := api.NewSP(client)
 
 	cl := &Client{
-		Logger:     logger,
-		SP:         sp,
-		spec:       s,
-		pluginSpec: pluginSpec,
-		opts:       opts,
-		csr:        caser.New(),
+		Logger: logger,
+		SP:     sp,
+
+		src:  src,
+		spec: spec,
+		opts: opts,
 	}
 
-	// if len(pluginSpec.Lists) == 0 {
-	// 	var err error
-	// 	pluginSpec.Lists, err = cl.getAllLists()
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// }
+	cl.Tables = make(schema.Tables, 0, len(spec.Lists))
+	cl.tablesMap = make(map[string]ListModel, len(spec.Lists))
 
-	cl.Tables = make(schema.Tables, 0, len(pluginSpec.Lists))
-	cl.tablesMap = make(map[string]tableMeta, len(pluginSpec.Lists))
-	for _, title := range pluginSpec.Lists {
-		table, meta, err := cl.tableFromList(title)
+	for listURI, listSpec := range spec.Lists {
+		table, meta, err := cl.tableFromList(listURI, listSpec)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get table from list: %w", err)
 		}
 		if table != nil {
-			// b, _ := json.Marshal(meta.ColumnMap)
-			// fmt.Println(string(b))
-			cl.Logger.Debug().Str("table", table.Name).Str("list", title).Str("columns", table.Columns.String()).Msg("columns for table")
+			cl.Logger.Debug().Str("table", table.Name).Str("list", listURI).Str("columns", table.Columns.String()).Msg("columns for table")
 
 			cl.Tables = append(cl.Tables, table)
 			cl.tablesMap[table.Name] = *meta
