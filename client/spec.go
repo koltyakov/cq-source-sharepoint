@@ -6,24 +6,38 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// Can we use camleCase here for JSON and snake for YML?
+// Spec is the configuration for a SharePoint source
 type Spec struct {
 	// Gosip auth config connection params https://go.spflow.com/auth/overview
 	Auth struct {
-		Strategy string            `json:"strategy"`
-		Creds    map[string]string `json:"creds"`
+		// Auth strategy: azurecert, azurecreds, device, saml, addin, adfs, ntlm, tmg, fba
+		Strategy string `json:"strategy"`
+		// `creds` options are unique for different auth strategies. See more details in [Auth strategies](https://go.spflow.com/auth/strategies)
+		Creds map[string]string `json:"creds"`
 	} `json:"auth"`
 
-	// Lists to fetch, if empty all lists will be fetched
+	// A map of URIs to the list configuration
+	// If no lists are provided, nothing will be fetched
 	Lists map[string]ListSpec `json:"lists"`
 }
 
+// ListSpec is the configuration for a list source
 type ListSpec struct {
+	// REST's `$select` OData modificator, fields entity properties array
+	// Wildcard selectors `*` are intentionally not supported
+	// If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
 	Select []string `json:"select"`
+	// REST's `$expand` OData modificator, fields entity properties array
+	// When expanding an entity use selection of a nested entity property(s)
+	// Optional, and in most of the cases we recommend to avoid it and
+	// prefer to map nested entities to the separate tables
 	Expand []string `json:"expand"`
-	Alias  string   `json:"alias"`
+	// Optional, an alias for the table name
+	// Don't map different lists to the same table - such scenariou is not supported
+	Alias string `json:"alias"`
 }
 
+// SetDefaults sets default values for top level spec
 func (s *Spec) SetDefaults() {
 	if s.Lists == nil {
 		s.Lists = make(map[string]ListSpec)
@@ -35,7 +49,7 @@ func (s *Spec) SetDefaults() {
 	}
 }
 
-// ToDo: Refactor to more elegant solution
+// SetDefault sets default values for list spec
 func (l *ListSpec) SetDefault() {
 	if l.Select == nil {
 		l.Select = []string{}
@@ -52,6 +66,7 @@ func (l *ListSpec) SetDefault() {
 	l.Select = concatSlice(prepProps, concatSlice(l.Select, apndProps))
 }
 
+// Validate validates SharePoint source spec validity
 func (s Spec) Validate() error {
 	if s.Auth.Strategy == "" {
 		return fmt.Errorf("auth.strategy is required")
