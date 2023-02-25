@@ -1,8 +1,6 @@
 # cq-source-sharepoint
 
-> The plugin is in early development stage. Its specification is not final yet.
-
-[CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin
+[CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin.
 
 ## Schema
 
