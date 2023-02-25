@@ -1,3 +1,6 @@
+install:
+	go get -u ./... && go mod tidy
+
 .PHONY: test
 test:
 	go test -timeout 3m ./...
@@ -6,5 +9,6 @@ test:
 lint:
 	@golangci-lint run --timeout 10m
 
+.PHONY: build
 build:
 	go build -o bin/cq-source-sharepoint -v

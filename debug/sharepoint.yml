@@ -16,21 +16,35 @@ spec:
       _catalogs/users:
         select:
           - Title
-        alias: "users"
+        alias: "user"
       Shared Documents:
         select:
           - FileLeafRef
           - FileRef
           - FileDirRef
-        alias: "documents"
-      Lists/Customer:
-        select:
-          - Title
-          - Description
-          - Options
-          - Attachments
           - Author/Title
+          - File/Length
         expand:
           - Author
+          - File
+        alias: "document"
+      Lists/Managers:
+        select:
+          - Title
+        alias: "manager"
+      Lists/Customers:
+        select:
+          - Title
+          - RoutingNumber
+          - Region
+          - Revenue
+          - ManagerId
         alias: "customer"
-        
+      Lists/Orders:
+        select:
+          - Title
+          - CustomerId
+          - OrderNumber
+          - OrderDate
+          - Total
+        alias: "order"

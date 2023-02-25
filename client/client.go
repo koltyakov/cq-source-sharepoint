@@ -50,9 +50,12 @@ func New(_ context.Context, logger zerolog.Logger, src specs.Source, opts source
 	}
 
 	jsonCreds, _ := json.Marshal(spec.Auth.Creds)
-	authCnfg, err := auth.NewAuthCnfg(spec.Auth.Strategy, jsonCreds)
+	authCnfg, err := auth.NewAuthByStrategy(spec.Auth.Strategy)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create auth config: %w", err)
+	}
+	if err := authCnfg.ParseConfig(jsonCreds); err != nil {
+		return nil, fmt.Errorf("failed to parse auth config: %w", err)
 	}
 
 	client := &gosip.SPClient{AuthCnfg: authCnfg}

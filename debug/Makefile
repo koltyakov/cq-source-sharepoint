@@ -11,3 +11,6 @@ sync-postgresql: build
 
 build:
 	cd .. && go build -o bin/cq-source-sharepoint -v
+
+clean:
+	rm db.sqlite cloudquery.log
