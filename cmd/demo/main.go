@@ -24,7 +24,7 @@ func main() {
 
 	// Provision lists
 	for _, listModel := range listsModel {
-		DropList(sp, listModel.Title) // drop list if exists
+		_ = DropList(sp, listModel.Title) // drop list if exists
 
 		fmt.Printf("Ensuring list \"%s\"\n", listModel.Title)
 		created, err := EnsureList(sp, listModel.Title, listModel.URI)

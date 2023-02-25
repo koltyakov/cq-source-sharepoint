@@ -40,3 +40,9 @@ func getRespValByProp(val map[string]any, propPath string) any {
 
 	return val[propPath]
 }
+
+// Concatenates two slices
+func concatSlice[T any](first []T, second []T) []T {
+	n := len(first)
+	return append(first[:n:n], second...)
+}

@@ -14,17 +14,17 @@ func seedManagers(sp *api.SP, managersNumber int) error {
 
 	bar := progressbar.Default(int64(managersNumber), "Managers seeding...")
 	for i := 0; i < managersNumber; i++ {
-		var manager = map[string]interface{}{
+		var manager = map[string]any{
 			"Title": gofakeit.Name(),
 		}
 		payload, _ := json.Marshal(manager)
 		if _, err := list.Items().Add(payload); err != nil {
-			bar.Finish()
+			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
-		bar.Add(1)
+		_ = bar.Add(1)
 	}
-	bar.Finish()
+	_ = bar.Finish()
 
 	return nil
 }
@@ -45,7 +45,7 @@ func seedCustomers(sp *api.SP, customersNumber int) error {
 
 	bar := progressbar.Default(int64(customersNumber), "Customers seeding...")
 	for i := 0; i < customersNumber; i++ {
-		var customer = map[string]interface{}{
+		var customer = map[string]any{
 			"Title":         gofakeit.Company(),
 			"RoutingNumber": gofakeit.AchRouting(),
 			"Region":        regions[gofakeit.Number(0, 2)],
@@ -54,12 +54,12 @@ func seedCustomers(sp *api.SP, customersNumber int) error {
 		}
 		payload, _ := json.Marshal(customer)
 		if _, err := list.Items().Add(payload); err != nil {
-			bar.Finish()
+			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
-		bar.Add(1)
+		_ = bar.Add(1)
 	}
-	bar.Finish()
+	_ = bar.Finish()
 
 	return nil
 }
@@ -78,7 +78,7 @@ func seedOrders(sp *api.SP, ordersNumber int) error {
 
 	bar := progressbar.Default(int64(ordersNumber), "Orders seeding...")
 	for i := 0; i < ordersNumber; i++ {
-		var order = map[string]interface{}{
+		var order = map[string]any{
 			"Title":       gofakeit.AppName(),
 			"CustomerId":  customers[gofakeit.Number(0, len(customers)-1)],
 			"OrderNumber": gofakeit.AchAccount(),
@@ -87,12 +87,12 @@ func seedOrders(sp *api.SP, ordersNumber int) error {
 		}
 		payload, _ := json.Marshal(order)
 		if _, err := list.Items().Add(payload); err != nil {
-			bar.Finish()
+			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
-		bar.Add(1)
+		_ = bar.Add(1)
 	}
-	bar.Finish()
+	_ = bar.Finish()
 
 	return nil
 }

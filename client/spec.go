@@ -46,10 +46,10 @@ func (l *ListSpec) SetDefault() {
 	apndProps := []string{"Created", "AuthorId", "Modified", "EditorId"}
 
 	l.Select = funk.FilterString(l.Select, func(field string) bool {
-		return !funk.ContainsString(append(exclude, append(prepProps, apndProps...)...), field)
+		return !funk.ContainsString(concatSlice(exclude, concatSlice(prepProps, apndProps)), field)
 	})
 
-	l.Select = append(prepProps, append(l.Select, apndProps...)...)
+	l.Select = concatSlice(prepProps, concatSlice(l.Select, apndProps))
 }
 
 func (s Spec) Validate() error {

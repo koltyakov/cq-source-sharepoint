@@ -46,8 +46,7 @@ func EnsureListField(sp *api.SP, listName string, fieldName string, schemaXML st
 			schemaXML = strings.Replace(schemaXML, " DisplayName=\""+schema.DisplayName+"\"", " DisplayName=\""+fieldName+"\"", 1)
 		}
 
-		switch schema.Type {
-		case "Lookup":
+		if schema.Type == "Lookup" {
 			// Resolve list by URI and inject list ID
 			if list, err := sp.Web().GetList(schema.List).Select("Id").Get(); err == nil {
 				schemaXML = strings.Replace(schemaXML, "List=\""+schema.List+"\"", "List=\""+list.Data().ID+"\"", 1)
@@ -72,8 +71,6 @@ func EnsureListField(sp *api.SP, listName string, fieldName string, schemaXML st
 
 // DropList deletes a list by title
 func DropList(sp *api.SP, listTitle string) error {
-	if err := sp.Web().Lists().GetByTitle(listTitle).Delete(); err != nil {
-		return err
-	}
-	return nil
+	err := sp.Web().Lists().GetByTitle(listTitle).Delete()
+	return err
 }
