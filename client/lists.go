@@ -41,7 +41,10 @@ func (c *Client) tableFromList(listURI string, spec ListSpec) (*schema.Table, *L
 		return nil, nil, err
 	}
 
-	tableName := normalizeName(listInfo.RootFolder.ServerRelativeURL)
+	siteURL := getRelativeURL(c.SP.ToURL())
+	lURI := removeRelativeURLPrefix(listInfo.RootFolder.ServerRelativeURL, siteURL)
+
+	tableName := normalizeName(lURI)
 	if spec.Alias != "" {
 		tableName = normalizeName(spec.Alias)
 	}

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"sort"
 	"strings"
 
@@ -63,7 +62,7 @@ func (c *Client) syncTable(ctx context.Context, metrics *source.TableClientMetri
 
 			for i, col := range table.Columns {
 				prop := meta.FieldsMap[col.Name]
-				colVals[i] = resolveValueByProp(itemMap, prop)
+				colVals[i] = getRespValByProp(itemMap, prop)
 			}
 
 			resource, err := resourceFromValues(table, colVals)
@@ -97,25 +96,4 @@ func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, er
 		}
 	}
 	return resource, nil
-}
-
-// Extracts value from map by property path
-func resolveValueByProp(val map[string]any, prop string) any {
-	if val == nil {
-		return nil
-	}
-
-	if strings.Contains(prop, "/") {
-		parts := strings.Split(prop, "/")
-		for _, part := range parts {
-			v := val[part]
-			if reflect.TypeOf(v).Kind() != reflect.Map {
-				return v
-			}
-			val = v.(map[string]any)
-		}
-		return val
-	}
-
-	return val[prop]
 }
