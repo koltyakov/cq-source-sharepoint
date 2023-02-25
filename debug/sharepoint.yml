@@ -16,6 +16,13 @@ spec:
       _catalogs/users:
         select:
           - Title
+          - FirstName
+          - LastName
+          - JobTitle
+          - Department
+          - EMail
+          - IsSiteAdmin
+          - Deleted
         alias: "user"
       Shared Documents:
         select:
