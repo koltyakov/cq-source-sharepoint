@@ -2,6 +2,13 @@
 
 [CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin.
 
+## Features
+
+- Lists and Document Libraries data fetching
+- User Information List data fetching
+- SharePoint Online support
+- SharePoint On-Premise support
+
 ## Schema
 
 ```yaml
