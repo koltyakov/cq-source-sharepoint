@@ -25,3 +25,5 @@ go run ./cmd/demo/...
 It sould create lists and feed bunch of random data.
 
 The process takes time due to the number of seeding items. Amend `./cmd/demo/main.go` to reduce or increase the number of items.
+
+If you see progress drammatically slowing dow or stuck, reduce concurrency as you face SharePoint API throttling.
