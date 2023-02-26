@@ -110,12 +110,12 @@ func runQueued[T any](items []T, conc int, errLimit int, fn func(T) error) error
 		for slots == 0 {
 			time.Sleep(10 * time.Microsecond)
 		}
-		slots = slots - 1
+		slots--
 		go func(i T) {
 			if err := fn(i); err != nil {
 				errs = append(errs, err)
 			}
-			slots = slots + 1
+			slots++
 		}(item)
 	}
 	for slots != conc {
