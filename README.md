@@ -8,6 +8,9 @@
 - User Information List data fetching
 - SharePoint Online support
 - SharePoint On-Premise support
+- Fast and potentially blazin fast with [spsync](https://github.com/koltyakov/spsync)
+
+![demo](./assets/demo.gif)
 
 ## Schema
 
