@@ -16,8 +16,8 @@
     "bin/": true,
     ".vscode/": true,
     "**/*.log": true,
-    "**/*.db": true,
-    "**/.cq/": true,
+    "**/db.sql": true,
+    "**/.cq/": true
   },
   "editor.formatOnSave": true,
   "editor.minimap.enabled": false

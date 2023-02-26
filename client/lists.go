@@ -38,6 +38,14 @@ func (c *Client) getListInfo(listURI string) (*listInfo, error) {
 func (c *Client) tableFromList(listURI string, spec ListSpec) (*schema.Table, *ListModel, error) {
 	listInfo, err := c.getListInfo(listURI)
 	if err != nil {
+		// ToDo: Decide which design is better to warn and go next or fail a sync
+		// Will stay with a fast fail strateg for now so a user will know about an error immediately
+		// Otherwise the only way to know about an error is to check `cloudquery.log` for
+		// `2023-02-26T15:24:36Z ERR list not found, skipping list={ListURI} module=sharepoint-src`
+		if IsNotFound(err) { // List not found, warn and skip
+			c.Logger.Error().Str("list", listURI).Msg("list not found")
+			return nil, nil, fmt.Errorf("list not found \"%s\": %w", listURI, err)
+		}
 		return nil, nil, err
 	}
 
