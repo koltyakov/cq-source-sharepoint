@@ -2,6 +2,12 @@
 
 Creates dummy lists and feeds random data into them.
 
+## Prerequisites
+
+- SharePoint Online tenant
+- SharePoint Online Addn-Only auth credentials
+- Go 1.19+
+
 ## Configure connection
 
 - Create `./config/private.json` file

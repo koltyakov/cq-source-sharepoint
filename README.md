@@ -33,15 +33,15 @@ spec:
 ```yaml
 # sharepoint.yml
 # ...
-  spec:
-    auth:
-      strategy: "azurecert"
-      creds:
-        siteUrl: "https://contoso.sharepoint.com/sites/cloudquery"
-        tenantId: "e1990a0a-dcf7-4b71-8b96-2a53c7e323e0"
-        clientId: "2a53c7e323e0-e1990a0a-dcf7-4b71-8b96"
-        certPath: "/path/to/cert.pfx"
-        certPass: "certpass"
+spec:
+  auth:
+    strategy: "azurecert"
+    creds:
+      siteUrl: "https://contoso.sharepoint.com/sites/cloudquery"
+      tenantId: "e1990a0a-dcf7-4b71-8b96-2a53c7e323e0"
+      clientId: "2a53c7e323e0-e1990a0a-dcf7-4b71-8b96"
+      certPath: "/path/to/cert.pfx"
+      certPass: "certpass"
 ```
 
 `creds` options are unique for different auth strategies. See more details in [Auth strategies](https://go.spflow.com/auth/strategies).
@@ -56,35 +56,34 @@ So far, the plugin supports lists and document libraries data fetching. Base on 
 
 A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations.
 
-
 ```yaml
 # sharepoint.yml
 # ...
-  spec:
-    # A map of URIs to the list configuration
-    # If no lists are provided, nothing will be fetched
-    lists:
-      # List or Document library URI - a relative path without a site URL
-      # Can be checker in the browser URL (exclude site URL and view page path)
-      Lists/ListEntityName:
-        # REST's `$select` OData modificator, fields entity properties array
-        # Wildcard selectors `*` are intentionally not supported
-        # If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
-        select:
-          - Title
-          - Author/Title
-        # REST's `$expand` OData modificator, fields entity properties array
-        # When expanding an entity use selection of a nested entity property(s)
-        # Optional, and in most of the cases we recommend to avoid it and 
-        # prefer to map nested entities to the separate tables
-        expand:
-          - Author
-        # Optional, an alias for the table name
-        # Don't map different lists to the same table - such scenariou is not supported
-        alias: "my_table"
-      Lists/AnotherList:
-        select:
-          - Title
+spec:
+  # A map of URIs to the list configuration
+  # If no lists are provided, nothing will be fetched
+  lists:
+    # List or Document library URI - a relative path without a site URL
+    # Can be checker in the browser URL (exclude site URL and view page path)
+    Lists/ListEntityName:
+      # REST's `$select` OData modificator, fields entity properties array
+      # Wildcard selectors `*` are intentionally not supported
+      # If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
+      select:
+        - Title
+        - Author/Title
+      # REST's `$expand` OData modificator, fields entity properties array
+      # When expanding an entity use selection of a nested entity property(s)
+      # Optional, and in most of the cases we recommend to avoid it and
+      # prefer to map nested entities to the separate tables
+      expand:
+        - Author
+      # Optional, an alias for the table name
+      # Don't map different lists to the same table - such scenariou is not supported
+      alias: "my_table"
+    Lists/AnotherList:
+      select:
+        - Title
 ```
 
 #### User Information List
@@ -94,19 +93,19 @@ Quite often you'd need getting User Information List for Author and Editor field
 ```yaml
 # sharepoint.yml
 # ...
-  spec:
-    lists:
-      _catalogs/users: # UIL list URI, source of People Picker lookup
-        select:
-          - Title
-          - FirstName
-          - LastName
-          - JobTitle
-          - Department
-          - EMail
-          - IsSiteAdmin
-          - Deleted
-        alias: "user"
+spec:
+  lists:
+    _catalogs/users: # UIL list URI, source of People Picker lookup
+      select:
+        - Title
+        - FirstName
+        - LastName
+        - JobTitle
+        - Department
+        - EMail
+        - IsSiteAdmin
+        - Deleted
+      alias: "user"
 ```
 
 #### Document libraries
@@ -118,20 +117,30 @@ Also, a document library URI usually doesn't contain `Lists/` prefix.
 ```yaml
 # sharepoint.yml
 # ...
-  spec:
-    lists:
-      Shared Documents:
-        select:
-          - FileLeafRef
-          - FileRef
-          - FileDirRef
-          - File/Length
-        expand:
-          - File
-        alias: "document"
+spec:
+  lists:
+    Shared Documents:
+      select:
+        - FileLeafRef
+        - FileRef
+        - FileDirRef
+        - File/Length
+      expand:
+        - File
+      alias: "document"
 ```
 
-## Schema e2e sample
+## Get started
+
+### Install CloudQuery
+
+Follow [quickstart instructions](https://www.cloudquery.io/docs/quickstart/).
+
+### Source sample data
+
+Provision and seed some sample data. [See more](./cmd/demo/README.md). Which satisfy the schema below.
+
+### Auth configuration
 
 ```bash
 # .env or env vars export
@@ -142,6 +151,8 @@ SP_CLIENT_ID=97e6ed51-777c-42da-8f07-b035a5ac057b
 SP_CLIENT_SECRET="1wlWvB...AqSP8="
 ```
 
+### Source configuration
+
 ```yaml
 # sharepoint.yml
 kind: source
@@ -150,7 +161,7 @@ spec:
   registry: "github"
   path: "koltyakov/sharepoint"
   version: "v1.0.0"
-  destinations: ["postgresql"]
+  destinations: ["sqlite"]
   spec:
     auth:
       strategy: "${SP_AUTH_STRATEGY}"
@@ -195,5 +206,43 @@ spec:
           - Total
         alias: "order"
 ```
+
+### Destination configuration
+
+For the sake of simplicity, we'll use SQLite destination.
+
+```yaml
+# sqlite.yml
+kind: destination
+spec:
+  name: sqlite
+  path: cloudquery/sqlite
+  version: "v1.3.0"
+  spec:
+    connection_string: ./db.sql
+```
+
+### Run CloudQuery
+
+```bash
+# With auth environment variables exported
+cloudquery sync sharepoint.yml sqlite.yml
+```
+
+You should see the following output:
+
+```bash
+Loading spec(s) from sharepoint_reg.yml, sqlite.yml
+Downloading https://github.com/koltyakov/cq-source-sharepoint/releases/download/v1.0.0/cq-source-sharepoint_darwin_arm64.zip
+Downloading 100% |█████████████████████████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
+Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.3.0)]
+Migration completed successfully.
+Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.3.0)]
+Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
+```
+
+Check for destination database data.
+
+---
 
 Powered by [Gosip](https://github.com/koltyakov/gosip).
