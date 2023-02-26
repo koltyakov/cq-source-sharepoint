@@ -2,31 +2,35 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"time"
 
 	"github.com/brianvoe/gofakeit/v6"
 	"github.com/koltyakov/gosip/api"
 	"github.com/schollz/progressbar/v3"
 )
 
+// Don't increase it too much as SharePoint will throttle quickly
+var concurrency = 5
+
 func seedManagers(sp *api.SP, managersNumber int) error {
 	list := sp.Web().GetList("Lists/Managers")
 
 	bar := progressbar.Default(int64(managersNumber), "Managers seeding...")
-	for i := 0; i < managersNumber; i++ {
+	err := runQueued(make([]int, managersNumber), concurrency, 1, func(_ int) error {
 		var manager = map[string]any{
 			"Title": gofakeit.Name(),
 		}
 		payload, _ := json.Marshal(manager)
 		if _, err := list.Items().Add(payload); err != nil {
-			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
-	}
+		return nil
+	})
 	_ = bar.Finish()
-
-	return nil
+	return err
 }
 
 func seedCustomers(sp *api.SP, customersNumber int) error {
@@ -44,7 +48,7 @@ func seedCustomers(sp *api.SP, customersNumber int) error {
 	list := sp.Web().GetList("Lists/Customers")
 
 	bar := progressbar.Default(int64(customersNumber), "Customers seeding...")
-	for i := 0; i < customersNumber; i++ {
+	err = runQueued(make([]int, customersNumber), concurrency, 1, func(_ int) error {
 		var customer = map[string]any{
 			"Title":         gofakeit.Company(),
 			"RoutingNumber": gofakeit.AchRouting(),
@@ -54,14 +58,13 @@ func seedCustomers(sp *api.SP, customersNumber int) error {
 		}
 		payload, _ := json.Marshal(customer)
 		if _, err := list.Items().Add(payload); err != nil {
-			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
-	}
+		return nil
+	})
 	_ = bar.Finish()
-
-	return nil
+	return err
 }
 
 func seedOrders(sp *api.SP, ordersNumber int) error {
@@ -77,7 +80,7 @@ func seedOrders(sp *api.SP, ordersNumber int) error {
 	list := sp.Web().GetList("Lists/Orders")
 
 	bar := progressbar.Default(int64(ordersNumber), "Orders seeding...")
-	for i := 0; i < ordersNumber; i++ {
+	err = runQueued(make([]int, ordersNumber), concurrency, 1, func(_ int) error {
 		var order = map[string]any{
 			"Title":       gofakeit.AppName(),
 			"CustomerId":  customers[gofakeit.Number(0, len(customers)-1)],
@@ -87,12 +90,36 @@ func seedOrders(sp *api.SP, ordersNumber int) error {
 		}
 		payload, _ := json.Marshal(order)
 		if _, err := list.Items().Add(payload); err != nil {
-			_ = bar.Finish()
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
-	}
+		return nil
+	})
 	_ = bar.Finish()
+	return err
+}
 
-	return nil
+// Runs a function on each item in a slice, with a maximum concurrency
+func runQueued[T any](items []T, conc int, errLimit int, fn func(T) error) error {
+	var errs []error
+	slots := conc
+	for _, item := range items {
+		if len(errs) > errLimit {
+			break
+		}
+		for slots == 0 {
+			time.Sleep(10 * time.Microsecond)
+		}
+		slots = slots - 1
+		go func(i T) {
+			if err := fn(i); err != nil {
+				errs = append(errs, err)
+			}
+			slots = slots + 1
+		}(item)
+	}
+	for slots != conc {
+		time.Sleep(10 * time.Microsecond)
+	}
+	return errors.Join(errs...)
 }

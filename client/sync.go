@@ -39,7 +39,7 @@ func (c *Client) syncList(ctx context.Context, metrics *source.TableClientMetric
 	items, err := list.Items().
 		Select(strings.Join(listModel.ListSpec.Select, ",")).
 		Expand(strings.Join(listModel.ListSpec.Expand, ",")).
-		Top(2000).GetPaged()
+		Top(5000).GetPaged()
 
 	for {
 		if err != nil {
