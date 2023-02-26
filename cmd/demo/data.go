@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -121,5 +120,16 @@ func runQueued[T any](items []T, conc int, errLimit int, fn func(T) error) error
 	for slots != conc {
 		time.Sleep(10 * time.Microsecond)
 	}
-	return errors.Join(errs...)
+
+	// return errors.Join(errs...) // Golangci fails in GitHub Actions with 1.20 due memory leak
+
+	if len(errs) > 0 {
+		var e error
+		for _, err := range errs {
+			e = fmt.Errorf("%s; %s", e, err)
+		}
+		return e
+	}
+
+	return nil
 }
