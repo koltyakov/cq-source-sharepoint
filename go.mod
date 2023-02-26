@@ -1,11 +1,13 @@
 module github.com/koltyakov/cq-source-sharepoint
 
-go 1.19
+go 1.20
 
 require (
+	github.com/brianvoe/gofakeit/v6 v6.20.1
 	github.com/cloudquery/plugin-sdk v1.40.0
 	github.com/koltyakov/gosip v0.0.0-20230225162407-d90f1db8d30e
 	github.com/rs/zerolog v1.29.0
+	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/thoas/go-funk v0.9.3
 )
 
@@ -19,7 +21,6 @@ require (
 	github.com/Azure/go-autorest/logger v0.2.1 // indirect
 	github.com/Azure/go-autorest/tracing v0.6.0 // indirect
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358 // indirect
-	github.com/brianvoe/gofakeit/v6 v6.20.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/denisbrodbeck/machineid v1.0.1 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
@@ -39,7 +40,6 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/schollz/progressbar/v3 v3.13.0 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
