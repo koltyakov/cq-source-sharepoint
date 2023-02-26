@@ -13,4 +13,4 @@ build:
 	cd .. && go build -o bin/cq-source-sharepoint -v
 
 clean:
-	rm db.sqlite cloudquery.log
+	rm db.sql cloudquery.log

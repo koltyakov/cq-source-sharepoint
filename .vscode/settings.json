@@ -1,0 +1,24 @@
+{
+  "files.trimTrailingWhitespace": true,
+  "editor.tabSize": 2,
+  "editor.autoIndent": "full",
+  "editor.renderWhitespace": "all",
+  "window.zoomLevel": 0,
+  "go.formatTool": "goimports",
+  "go.testFlags": ["-count=1", "-v"],
+  "go.formatFlags": ["-s", "-w"],
+  "go.lintOnSave": "file",
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": ["--fast", "--auto-fix"],
+  "files.exclude": {
+    "**/*_test.go": false,
+    "**/*_gen.go": true,
+    "bin/": true,
+    ".vscode/": true,
+    "**/*.log": true,
+    "**/*.db": true,
+    "**/.cq/": true,
+  },
+  "editor.formatOnSave": true,
+  "editor.minimap.enabled": false
+}
