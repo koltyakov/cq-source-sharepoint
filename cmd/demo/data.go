@@ -23,11 +23,13 @@ func seedManagers(sp *api.SP, managersNumber int) error {
 		}
 		payload, _ := json.Marshal(manager)
 		if _, err := list.Items().Add(payload); err != nil {
+			_ = bar.Add(1)
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
 		return nil
 	})
+	_ = bar.Set(managersNumber)
 	_ = bar.Finish()
 	return err
 }
@@ -57,11 +59,13 @@ func seedCustomers(sp *api.SP, customersNumber int) error {
 		}
 		payload, _ := json.Marshal(customer)
 		if _, err := list.Items().Add(payload); err != nil {
+			_ = bar.Add(1)
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
 		return nil
 	})
+	_ = bar.Set(customersNumber)
 	_ = bar.Finish()
 	return err
 }
@@ -89,11 +93,13 @@ func seedOrders(sp *api.SP, ordersNumber int) error {
 		}
 		payload, _ := json.Marshal(order)
 		if _, err := list.Items().Add(payload); err != nil {
+			_ = bar.Add(1)
 			return fmt.Errorf("failed to create list item: %s", err)
 		}
 		_ = bar.Add(1)
 		return nil
 	})
+	_ = bar.Set(ordersNumber)
 	_ = bar.Finish()
 	return err
 }
