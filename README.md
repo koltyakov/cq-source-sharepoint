@@ -262,4 +262,4 @@ Check for destination database data.
 
 ---
 
-Powered by [Gosip](https://github.com/koltyakov/gosip).
+Powered by [gosip](https://github.com/koltyakov/gosip).
