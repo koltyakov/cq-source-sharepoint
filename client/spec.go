@@ -27,20 +27,20 @@ type AuthSpec struct {
 
 // ListSpec is the configuration for a list source
 type ListSpec struct {
-	// REST's `$select` OData modificator, fields entity properties array
+	// REST `$select` OData modificator, fields entity properties array
 	// Wildcard selectors `*` are intentionally not supported
 	// If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
 	Select []string `json:"select"`
-	// REST's `$expand` OData modificator, fields entity properties array
+	// REST `$expand` OData modificator, fields entity properties array
 	// When expanding an entity use selection of a nested entity property(s)
 	// Optional, and in most of the cases we recommend to avoid it and
 	// prefer to map nested entities to the separate tables
 	Expand []string `json:"expand"`
-	// REST's `$filter` OData modificator, a filter string
+	// REST `$filter` OData modificator, a filter string
 	// Don't use filters for large entities which potentially can return more than 5000 in a view
 	// such filtering will throttle no matter top limit is set
 	Filter string `json:"filter"`
-	// REST's `$top` OData modificator, a number of items to fetch per page
+	// REST `$top` OData modificator, a number of items to fetch per page
 	// If not provided, 5000 will be used
 	// In most of the cases you don't need to change this value
 	// It also can't be larger than 5000 anyways

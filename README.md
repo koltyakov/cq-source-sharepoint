@@ -71,18 +71,23 @@ spec:
     # List or Document library URI - a relative path without a site URL
     # Can be checker in the browser URL (exclude site URL and view page path)
     Lists/ListEntityName:
-      # REST's `$select` OData modificator, fields entity properties array
+      # REST `$select` OData modificator, fields entity properties array
       # Wildcard selectors `*` are intentionally not supported
       # If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
       select:
         - Title
         - Author/Title
-      # REST's `$expand` OData modificator, fields entity properties array
+      # REST `$expand` OData modificator, fields entity properties array
       # When expanding an entity use selection of a nested entity property(s)
       # Optional, and in most of the cases we recommend to avoid it and
       # prefer to map nested entities to the separate tables
       expand:
         - Author
+      # REST `$filter` OData modificator, a filter string
+      # Don't use filters for large entities which potentially
+      # can return more than 5000 in a view
+      # such filtering will throttle no matter top limit is set
+      filter: "Active eq true"
       # Optional, an alias for the table name
       # Don't map different lists to the same table - such scenariou is not supported
       alias: "my_table"
@@ -108,8 +113,8 @@ spec:
         - JobTitle
         - Department
         - EMail
-        - IsSiteAdmin
         - Deleted
+      filter: "UserName ne null"
       alias: "user"
 ```
 
@@ -178,6 +183,13 @@ spec:
       _catalogs/users:
         select:
           - Title
+          - FirstName
+          - LastName
+          - JobTitle
+          - Department
+          - EMail
+          - Deleted
+        filter: "UserName ne null"
         alias: "user"
       Shared Documents:
         select:
