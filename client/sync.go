@@ -35,11 +35,17 @@ func (c *Client) syncList(ctx context.Context, metrics *source.TableClientMetric
 
 	logger.Debug().Strs("cols", listModel.ListSpec.Select).Msg("selecting columns from list")
 
+	top := 5000
+	if listModel.ListSpec.Top > 0 && listModel.ListSpec.Top < 5000 {
+		top = listModel.ListSpec.Top
+	}
+
 	list := c.SP.Web().GetList(listModel.ListURI)
 	items, err := list.Items().
 		Select(strings.Join(listModel.ListSpec.Select, ",")).
 		Expand(strings.Join(listModel.ListSpec.Expand, ",")).
-		Top(5000).GetPaged()
+		Filter(listModel.ListSpec.Filter).
+		Top(top).GetPaged()
 
 	for {
 		if err != nil {
