@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/thoas/go-funk"
 )
@@ -52,6 +53,7 @@ func (s *Spec) SetDefaults() {
 		s.Lists = make(map[string]ListSpec)
 	}
 
+	// Set default values for list specs
 	for ListURI, listSpec := range s.Lists {
 		listSpec.SetDefault()
 		s.Lists[ListURI] = listSpec
@@ -82,6 +84,23 @@ func (s Spec) Validate() error {
 	}
 	if len(s.Auth.Creds) == 0 {
 		return fmt.Errorf("auth.creds is required")
+	}
+
+	if len(s.Lists) == 0 {
+		return fmt.Errorf("no lists configuration is provided")
+	}
+
+	// All lists should have unique aliases
+	aliases := make(map[string]bool)
+	for listURI, listSpec := range s.Lists {
+		alias := strings.ToLower(listSpec.Alias)
+		if alias == "" {
+			alias = strings.ToLower(listURI)
+		}
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for list \"%s\" configuration", alias, listURI)
+		}
+		aliases[alias] = true
 	}
 
 	return nil
