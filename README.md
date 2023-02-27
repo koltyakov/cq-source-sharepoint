@@ -2,6 +2,11 @@
 
 [CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin.
 
+<p float="left">
+  <img height="40px" src="./assets/cq.svg" />
+  <img height="40px" src="./assets/sp.svg" />
+</p>
+
 ## Features
 
 - Lists and Document Libraries data fetching
