@@ -159,7 +159,7 @@ spec:
       alias: "document"
 ```
 
-### Managed Metadata
+#### Managed Metadata
 
 To configure managed metadata fetching, you need to provide a term set ID (GUID) and an optional alias for the table name.
 
