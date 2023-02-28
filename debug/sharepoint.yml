@@ -16,6 +16,7 @@ spec:
       _catalogs/users:
         select:
           - Title
+          - UserName
           - FirstName
           - LastName
           - JobTitle
@@ -23,7 +24,20 @@ spec:
           - EMail
           - IsSiteAdmin
           - Deleted
+        filter: "UserName ne null"
         alias: "user"
+      # _catalogs/users:
+      #   select:
+      #     - Title
+      #     - FirstName
+      #     - LastName
+      #     - JobTitle
+      #     - Department
+      #     - EMail
+      #     - IsSiteAdmin
+      #     - Deleted
+      #   filter: "UserName eq null"
+      #   alias: "group"
       Shared Documents:
         select:
           - FileLeafRef

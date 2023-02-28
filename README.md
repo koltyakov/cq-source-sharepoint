@@ -25,7 +25,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.0.0" # provide the latest stable version
+  version: "v1.1.0" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -71,18 +71,23 @@ spec:
     # List or Document library URI - a relative path without a site URL
     # Can be checker in the browser URL (exclude site URL and view page path)
     Lists/ListEntityName:
-      # REST's `$select` OData modificator, fields entity properties array
+      # REST `$select` OData modificator, fields entity properties array
       # Wildcard selectors `*` are intentionally not supported
       # If not provided, only default fields will be fetched (ID, Created, AuthorId, Modified, EditorId)
       select:
         - Title
         - Author/Title
-      # REST's `$expand` OData modificator, fields entity properties array
+      # REST `$expand` OData modificator, fields entity properties array
       # When expanding an entity use selection of a nested entity property(s)
       # Optional, and in most of the cases we recommend to avoid it and
       # prefer to map nested entities to the separate tables
       expand:
         - Author
+      # REST `$filter` OData modificator, a filter string
+      # Don't use filters for large entities which potentially
+      # can return more than 5000 in a view
+      # such filtering will throttle no matter top limit is set
+      filter: "Active eq true"
       # Optional, an alias for the table name
       # Don't map different lists to the same table - such scenariou is not supported
       alias: "my_table"
@@ -108,8 +113,8 @@ spec:
         - JobTitle
         - Department
         - EMail
-        - IsSiteAdmin
         - Deleted
+      filter: "UserName ne null"
       alias: "user"
 ```
 
@@ -165,7 +170,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.0.0"
+  version: "v1.1.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:
@@ -178,6 +183,13 @@ spec:
       _catalogs/users:
         select:
           - Title
+          - FirstName
+          - LastName
+          - JobTitle
+          - Department
+          - EMail
+          - Deleted
+        filter: "UserName ne null"
         alias: "user"
       Shared Documents:
         select:
@@ -250,4 +262,4 @@ Check for destination database data.
 
 ---
 
-Powered by [Gosip](https://github.com/koltyakov/gosip).
+Powered by [gosip](https://github.com/koltyakov/gosip).
