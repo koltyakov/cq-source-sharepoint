@@ -6,6 +6,9 @@ endif
 sync-sqlite: build
 	cloudquery sync sharepoint.yml sqlite.yml
 
+sync-dl: build
+	cloudquery sync sp.yml sqlite.yml
+
 sync-postgresql: build
 	CQ_DESTINATION=postgresql cloudquery sync sharepoint.yml postgresql.yml
 

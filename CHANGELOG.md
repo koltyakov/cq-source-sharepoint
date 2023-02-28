@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.3.0 (2023-02-28)
+
+### Features
+
+- Added NTLM2 auth support
+- Added On-Demand auth support
+
 ## 1.2.0 (2023-02-28)
 
 ### Features
