@@ -55,7 +55,7 @@ func main() {
 		log.Fatalf("failed to seed customers: %s", err)
 	}
 
-	if err := seedOrders(sp, 10000); err != nil {
+	if err := seedOrders(sp, 1000); err != nil {
 		log.Fatalf("failed to seed orders: %s", err)
 	}
 

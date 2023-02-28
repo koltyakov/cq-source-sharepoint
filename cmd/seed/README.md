@@ -1,4 +1,4 @@
-# Demo data feed
+# Demo data seed
 
 Creates dummy lists and feeds random data into them.
 
@@ -25,7 +25,7 @@ Creates dummy lists and feeds random data into them.
 ## Run provisioning
 
 ```bash
-go run ./cmd/demo/...
+go run ./cmd/seed/...
 ```
 
 It sould create lists and feed bunch of random data.
