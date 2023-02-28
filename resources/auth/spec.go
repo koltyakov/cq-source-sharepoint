@@ -28,9 +28,11 @@ func (s *Spec) Validate() error {
 		"device":     {fields: []string{"siteUrl", "tenantId", "clientId"}, docs: "https://go.spflow.com/auth/strategies/azure-device-flow"},
 		"saml":       {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/strategies/saml"},
 		"ntlm":       {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/strategies/ntlm"},
+		"ntlm2":      {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/custom-auth/alternative-ntlm"},
 		"adfs":       {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/strategies/adfs"},
 		"fba":        {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/strategies/fba"},
 		"tmg":        {fields: []string{"siteUrl", "username", "password"}, docs: "https://go.spflow.com/auth/strategies/tmg"},
+		"ondemand":   {fields: []string{"siteUrl"}, docs: "https://go.spflow.com/auth/custom-auth/on-demand"},
 	}
 
 	strategiesList := funk.Keys(strategies).([]string)

@@ -6,9 +6,11 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.20.1
 	github.com/cloudquery/plugin-sdk v1.40.0
 	github.com/koltyakov/gosip v0.0.0-20230225162407-d90f1db8d30e
+	github.com/koltyakov/gosip-sandbox v0.0.0-20221012144252-38b6671ec9db
 	github.com/rs/zerolog v1.29.0
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/thoas/go-funk v0.9.3
+	golang.org/x/sync v0.1.0
 )
 
 require (
@@ -32,6 +34,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/zerolog/v2 v2.0.0-rc.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/koltyakov/lorca v0.1.9-0.20200112132759-701f901adf53 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
@@ -44,9 +47,10 @@ require (
 	github.com/spf13/cobra v1.6.1 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.8.2 // indirect
+	github.com/vadimi/go-http-ntlm/v2 v2.4.1 // indirect
+	github.com/vadimi/go-ntlm v1.2.1 // indirect
 	golang.org/x/crypto v0.6.0 // indirect
 	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect

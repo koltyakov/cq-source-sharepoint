@@ -38,7 +38,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.2.0" # provide the latest stable version
+  version: "v1.3.0" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -161,7 +161,7 @@ spec:
       alias: "document"
 ```
 
-### Managed Metadata
+#### Managed Metadata
 
 To configure managed metadata fetching, you need to provide a term set ID (GUID) and an optional alias for the table name.
 
@@ -204,7 +204,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.2.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.3.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:
