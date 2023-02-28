@@ -17,6 +17,17 @@
 
 ![demo](./assets/demo.gif)
 
+## Roadmap
+
+- [x] Lists and Document Libraries data
+- [ ] [Managed Metadata data](https://github.com/koltyakov/cq-source-sharepoint/issues/12)
+- [ ] [User Profile Service data](https://github.com/koltyakov/cq-source-sharepoint/issues/13)
+- [ ] [Search queries data](https://github.com/koltyakov/cq-source-sharepoint/issues/14)
+- [ ] Content types based rollup
+- [ ] Governance scenarios data
+
+Vote for a feature you need or create a PR.
+
 ## Schema
 
 ```yaml
