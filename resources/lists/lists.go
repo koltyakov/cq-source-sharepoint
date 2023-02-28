@@ -1,77 +1,73 @@
-package client
+package lists
 
 import (
 	"encoding/json"
 	"fmt"
-	"strings"
 
 	"github.com/cloudquery/plugin-sdk/schema"
+	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
 	"github.com/thoas/go-funk"
 )
 
-type listInfo struct {
-	Title       string `json:"Title"`
-	Description string `json:"Description"`
-	RootFolder  struct {
-		ServerRelativeURL string `json:"ServerRelativeUrl"`
-	} `json:"RootFolder"`
+type Lists struct {
+	sp     *api.SP
+	logger zerolog.Logger
+
+	tablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
 }
 
-func (c *Client) getListInfo(listURI string) (*listInfo, error) {
-	list := c.SP.Web().GetList(listURI)
-
-	listResp, err := list.Select("Title,Description,RootFolder/ServerRelativeUrl").Expand("RootFolder").Get()
-	if err != nil {
-		return nil, fmt.Errorf("failed to get list: %w", err)
-	}
-
-	var listInfo *listInfo
-	if err := json.Unmarshal(listResp.Normalized(), &listInfo); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal list: %w", err)
-	}
-
-	return listInfo, nil
+type Model struct {
+	URI       string
+	Spec      Spec
+	FieldsMap map[string]string // cq column name to column metadata
 }
 
-func (c *Client) tableFromList(listURI string, spec ListSpec) (*schema.Table, *ListModel, error) {
-	listInfo, err := c.getListInfo(listURI)
+func NewLists(sp *api.SP, logger zerolog.Logger) *Lists {
+	return &Lists{
+		sp:        sp,
+		logger:    logger,
+		tablesMap: map[string]Model{},
+	}
+}
+
+func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
+	listInfo, err := l.getListInfo(listURI)
 	if err != nil {
 		// ToDo: Decide which design is better to warn and go next or fail a sync
 		// Will stay with a fast fail strateg for now so a user will know about an error immediately
 		// Otherwise the only way to know about an error is to check `cloudquery.log` for
 		// `2023-02-26T15:24:36Z ERR list not found, skipping list={ListURI} module=sharepoint-src`
-		if IsNotFound(err) { // List not found, warn and skip
-			c.Logger.Error().Str("list", listURI).Msg("list not found")
-			return nil, nil, fmt.Errorf("list not found \"%s\": %w", listURI, err)
+		if util.IsNotFound(err) { // List not found, warn and skip
+			l.logger.Error().Str("list", listURI).Msg("list not found")
+			return nil, fmt.Errorf("list not found \"%s\": %w", listURI, err)
 		}
-		return nil, nil, err
+		return nil, err
 	}
 
-	siteURL := getRelativeURL(c.SP.ToURL())
-	lURI := removeRelativeURLPrefix(listInfo.RootFolder.ServerRelativeURL, siteURL)
+	siteURL := util.GetRelativeURL(l.sp.ToURL())
+	lURI := util.RemoveRelativeURLPrefix(listInfo.RootFolder.ServerRelativeURL, siteURL)
 
-	tableName := normalizeName(lURI)
+	tableName := util.NormalizeEntityName(lURI)
 	if spec.Alias != "" {
-		tableName = normalizeName(spec.Alias)
+		tableName = util.NormalizeEntityName(spec.Alias)
 	}
 
 	table := &schema.Table{
 		Name:        "sharepoint_" + tableName,
 		Description: listInfo.Description,
 	}
-	logger := c.Logger.With().Str("table", table.Name).Logger()
 
-	fields, err := c.SP.Web().GetList(listURI).Fields().Get()
+	fields, err := l.sp.Web().GetList(listURI).Fields().Get()
 	if err != nil {
-		return nil, nil, fmt.Errorf("failed to get fields: %w", err)
+		return nil, fmt.Errorf("failed to get fields: %w", err)
 	}
 
 	fieldsData := fields.Data()
-	mapping := &ListModel{
-		ListURI:   listURI,
-		ListSpec:  spec,
+	model := &Model{
+		URI:       listURI,
+		Spec:      spec,
 		FieldsMap: map[string]string{},
 	}
 
@@ -94,27 +90,55 @@ func (c *Client) tableFromList(listURI string, spec ListSpec) (*schema.Table, *L
 		// Props is not presented in list's fields
 		if field == nil {
 			c := schema.Column{
-				Name:        normalizeName(prop),
+				Name:        util.NormalizeEntityName(prop),
 				Description: prop,
 				Type:        schema.TypeString,
 			}
 
 			table.Columns = append(table.Columns, c)
-			mapping.FieldsMap[c.Name] = prop
+			model.FieldsMap[c.Name] = prop
 			continue
 		}
 
-		col := columnFromField(field, logger)
+		col := l.columnFromField(field, table.Name)
 		col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
 
 		table.Columns = append(table.Columns, col)
-		mapping.FieldsMap[col.Name] = prop
+		model.FieldsMap[col.Name] = prop
 	}
 
-	return table, mapping, nil
+	l.tablesMap[table.Name] = *model
+
+	return table, nil
 }
 
-func columnFromField(field *api.FieldInfo, logger zerolog.Logger) schema.Column {
+type listInfo struct {
+	Title       string `json:"Title"`
+	Description string `json:"Description"`
+	RootFolder  struct {
+		ServerRelativeURL string `json:"ServerRelativeUrl"`
+	} `json:"RootFolder"`
+}
+
+func (l *Lists) getListInfo(listURI string) (*listInfo, error) {
+	list := l.sp.Web().GetList(listURI)
+
+	listResp, err := list.Select("Title,Description,RootFolder/ServerRelativeUrl").Expand("RootFolder").Get()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get list: %w", err)
+	}
+
+	var listInfo *listInfo
+	if err := json.Unmarshal(listResp.Normalized(), &listInfo); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal list: %w", err)
+	}
+
+	return listInfo, nil
+}
+
+func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.Column {
+	logger := l.logger.With().Str("table", tableName).Logger()
+
 	c := schema.Column{
 		Description: field.Description,
 	}
@@ -149,16 +173,7 @@ func columnFromField(field *api.FieldInfo, logger zerolog.Logger) schema.Column 
 		c.Type = schema.TypeString
 	}
 
-	c.Name = normalizeName(field.InternalName)
+	c.Name = util.NormalizeEntityName(field.InternalName)
 
 	return c
-}
-
-func normalizeName(name string) string {
-	s := strings.ToLower(name)
-	s = strings.ReplaceAll(s, " ", "_")
-	s = strings.ReplaceAll(s, "-", "_")
-	s = strings.ReplaceAll(s, "/", "_")
-	s = strings.Trim(s, "_")
-	return s
 }

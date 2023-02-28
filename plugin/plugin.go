@@ -17,7 +17,7 @@ func Plugin() *source.Plugin {
 		"sharepoint",
 		Version,
 		nil,
-		client.New,
+		client.NewClient,
 		source.WithDynamicTableOption(getDynamicTables),
 		source.WithUnmanaged(),
 		source.WithNoInternalColumns(),
