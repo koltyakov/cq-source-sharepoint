@@ -16,12 +16,23 @@ func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *
 		}
 	}
 
-	// ToDo: Separate tables for different types of resources
-	for _, table := range c.Tables {
+	// Lists sync
+	for tableName := range c.lists.TablesMap {
+		table := c.Tables.Get(tableName)
 		m := metrics.TableClient[table.Name][c.ID()]
 		if err := c.lists.Sync(ctx, m, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
+
+	// MMD (Terms from TermSets) sync
+	for tableName := range c.mmd.TablesMap {
+		table := c.Tables.Get(tableName)
+		m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.mmd.Sync(ctx, m, res, table); err != nil {
+			return fmt.Errorf("syncing table %s: %w", table.Name, err)
+		}
+	}
+
 	return nil
 }

@@ -20,7 +20,7 @@
 ## Roadmap
 
 - [x] Lists and Document Libraries data
-- [ ] [Managed Metadata data](https://github.com/koltyakov/cq-source-sharepoint/issues/12)
+- [x] [Managed Metadata terms](https://github.com/koltyakov/cq-source-sharepoint/issues/12)
 - [ ] [User Profile Service data](https://github.com/koltyakov/cq-source-sharepoint/issues/13)
 - [ ] [Search queries data](https://github.com/koltyakov/cq-source-sharepoint/issues/14)
 - [ ] Content types based rollup
@@ -36,7 +36,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.1.0" # provide the latest stable version
+  version: "v1.2.0" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -68,7 +68,7 @@ SharePoint On-Premise auth is also supported, based on your farm configuration y
 
 ### Entities configuration
 
-So far, the plugin supports lists and document libraries data fetching. Base on feedback and use cases, we have a strategy for extending the plugin to support other SharePoint API entities, e.g. Managed Metadata, UPS, etc.
+So far, the plugin supports lists, document libraries and managed metadata fetching. Base on feedback and use cases, we have a strategy for extending the plugin to support other SharePoint API entities.
 
 A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations.
 
@@ -76,7 +76,7 @@ A single source `yml` configuration assumes fetching data from a single SharePoi
 # sharepoint.yml
 # ...
 spec:
-  # A map of URIs to the list configuration
+  # A map of URIs with the list configurations
   # If no lists are provided, nothing will be fetched
   lists:
     # List or Document library URI - a relative path without a site URL
@@ -105,6 +105,14 @@ spec:
     Lists/AnotherList:
       select:
         - Title
+  # A map of MMD term sets IDs (GUIDs)
+  # If no term sets provided, no terms will be fetched
+  mmd:
+    # Term set ID
+    8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+      # Optional, an alias for the table name
+      # the name of the alias is prefixed with `mmd_`
+      alias: "department"
 ```
 
 #### User Information List
@@ -151,6 +159,19 @@ spec:
       alias: "document"
 ```
 
+### Managed Metadata
+
+To configure managed metadata fetching, you need to provide a term set ID (GUID) and an optional alias for the table name.
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  mmd:
+    8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+      alias: "department"
+```
+
 ## Get started
 
 ### Install CloudQuery
@@ -181,7 +202,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.1.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.2.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:

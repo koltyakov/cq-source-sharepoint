@@ -17,7 +17,8 @@
     ".vscode/": true,
     "**/*.log": true,
     "**/db.sql": true,
-    "**/.cq/": true
+    "**/.cq/": true,
+    "db.sql-journal": true
   },
   "editor.formatOnSave": true,
   "editor.minimap.enabled": false

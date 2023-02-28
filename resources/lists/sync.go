@@ -14,7 +14,7 @@ import (
 )
 
 func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
-	opts := l.tablesMap[table.Name]
+	opts := l.TablesMap[table.Name]
 	logger := l.logger.With().Str("table", table.Name).Logger()
 
 	logger.Debug().Strs("cols", opts.Spec.Select).Msg("selecting columns from list")

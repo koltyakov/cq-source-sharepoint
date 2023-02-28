@@ -15,7 +15,7 @@ type Lists struct {
 	sp     *api.SP
 	logger zerolog.Logger
 
-	tablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
+	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
 }
 
 type Model struct {
@@ -28,7 +28,7 @@ func NewLists(sp *api.SP, logger zerolog.Logger) *Lists {
 	return &Lists{
 		sp:        sp,
 		logger:    logger,
-		tablesMap: map[string]Model{},
+		TablesMap: map[string]Model{},
 	}
 }
 
@@ -107,7 +107,7 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 		model.FieldsMap[col.Name] = prop
 	}
 
-	l.tablesMap[table.Name] = *model
+	l.TablesMap[table.Name] = *model
 
 	return table, nil
 }
