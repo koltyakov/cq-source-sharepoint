@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 (2023-02-28)
+
+### Features
+
+- Managed Metadata support
+
 ## 1.1.0 (2023-02-26)
 
 ### Features

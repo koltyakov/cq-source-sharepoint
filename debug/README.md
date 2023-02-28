@@ -6,9 +6,9 @@ Copy `.env.example` to `.env` and fill in the values.
 
 The example values stands for SharePoint Online Addn-Only auth scenario. See more details in [SharePoint Online Addn-Only auth](https://go.spflow.com/auth/strategies/addin).
 
-## Demo data
+## Demo data seed
 
-Check [demo data](./demo/README.md) for more details.
+Check [demo data seed](./cmd/seed/README.md) for more details.
 
 ## Run sync
 
