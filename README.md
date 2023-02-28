@@ -1,5 +1,7 @@
 # cq-source-sharepoint
 
+![Downloads](https://img.shields.io/github/downloads/koltyakov/cq-source-sharepoint/total.svg)
+
 [CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin.
 
 <p float="left">
