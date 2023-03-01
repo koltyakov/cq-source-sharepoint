@@ -84,6 +84,12 @@ func (s *Spec) Validate() error {
 		aliases[alias] = true
 	}
 
+	// App only auth is not supported with search driven sources
+	// ToDo: check other not user context auth strategies
+	if s.Auth.Strategy == "addin" && s.Profiles.Enabled {
+		return fmt.Errorf("addin auth strategy is not supported for this data source, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
+	}
+
 	return nil
 }
 
