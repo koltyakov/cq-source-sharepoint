@@ -12,6 +12,11 @@ spec:
         siteUrl: ${SP_SITE_URL}
         clientId: ${SP_CLIENT_ID}
         clientSecret: ${SP_CLIENT_SECRET}
+      # strategy: "saml"
+      # creds:
+      #   siteUrl: ${SP_SITE_URL}
+      #   username: ${SP_USERNAME}
+      #   password: ${SP_PASSWORD}
     lists:
       _catalogs/users:
         select:
@@ -60,3 +65,5 @@ spec:
     mmd:
       8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
         alias: "department"
+    profiles:
+      enabled: false

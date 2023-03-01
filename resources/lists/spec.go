@@ -26,7 +26,7 @@ type Spec struct {
 	// It also can't be larger than 5000 anyways
 	Top int `json:"top"`
 	// Optional, an alias for the table name
-	// Don't map different lists to the same table - such scenariou is not supported
+	// Don't map different lists to the same table - such scenario is not supported
 	Alias string `json:"alias"`
 }
 

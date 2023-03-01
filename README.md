@@ -100,7 +100,7 @@ spec:
       # such filtering will throttle no matter top limit is set
       filter: "Active eq true"
       # Optional, an alias for the table name
-      # Don't map different lists to the same table - such scenariou is not supported
+      # Don't map different lists to the same table - such scenario is not supported
       alias: "my_table"
     Lists/AnotherList:
       select:

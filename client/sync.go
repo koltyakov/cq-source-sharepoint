@@ -34,5 +34,14 @@ func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *
 		}
 	}
 
+	// User profiles sync
+	for tableName := range c.profiles.TablesMap {
+		table := c.Tables.Get(tableName)
+		m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.profiles.Sync(ctx, m, res, table); err != nil {
+			return fmt.Errorf("syncing table %s: %w", table.Name, err)
+		}
+	}
+
 	return nil
 }

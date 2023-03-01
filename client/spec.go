@@ -8,6 +8,7 @@ import (
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
+	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
 )
 
 // Spec is the configuration for a SharePoint source
@@ -21,6 +22,9 @@ type Spec struct {
 
 	// A map of TermSets GUIDs to the MMD configuration
 	MMD map[string]mmd.Spec `json:"mmd"`
+
+	// User profiles configuration
+	Profiles profiles.Spec `json:"profiles"`
 }
 
 // SetDefaults sets default values for top level spec
@@ -64,6 +68,18 @@ func (s *Spec) Validate() error {
 		}
 		if _, ok := aliases[alias]; ok {
 			return fmt.Errorf("duplicate alias \"%s\" for term set \"%s\" configuration", alias, terSetID)
+		}
+		aliases[alias] = true
+	}
+
+	// User profiles should have unique alias
+	if s.Profiles.Enabled {
+		alias := strings.ToLower("ups_profile")
+		if s.Profiles.Alias != "" {
+			alias = strings.ToLower("ups_" + s.Profiles.Alias)
+		}
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for user profiles configuration", alias)
 		}
 		aliases[alias] = true
 	}
