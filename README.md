@@ -21,8 +21,8 @@
 
 - [x] Lists and Document Libraries data
 - [x] [Managed Metadata terms](https://github.com/koltyakov/cq-source-sharepoint/issues/12)
-- [ ] [User Profile Service data](https://github.com/koltyakov/cq-source-sharepoint/issues/13)
-- [ ] [Search queries data](https://github.com/koltyakov/cq-source-sharepoint/issues/14)
+- [x] [User Profile Service data](https://github.com/koltyakov/cq-source-sharepoint/issues/13)
+- [x] [Search queries data](https://github.com/koltyakov/cq-source-sharepoint/issues/14)
 - [ ] Content types based rollup
 - [ ] Governance scenarios data
 
@@ -36,7 +36,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.3.0" # provide the latest stable version
+  version: "v1.4.0" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -62,15 +62,13 @@ spec:
 
 `creds` options are unique for different auth strategies. See more details in [Auth strategies](https://go.spflow.com/auth/strategies).
 
-We always recomment Azure AD (`azurecert`) or Add-In (`addin`) auth for production scenarios for SharePoint Online. Yet, other auth strategies are available for testing and development purposes, e.g. `saml`, `device`.
+We recomment Azure AD (`azurecert`) or Add-In (`addin`) auth for production scenarios for SharePoint Online. Yet, other auth strategies are also available, e.g. `saml`, `device`. Some of the APIs could require using user contextual auth, for instance, Search API can't work without a user context.
 
 SharePoint On-Premise auth is also supported, based on your farm configuration you can use: `ntlm`, `adfs` to name a few.
 
 ### Entities configuration
 
-So far, the plugin supports lists, document libraries and managed metadata fetching. Base on feedback and use cases, we have a strategy for extending the plugin to support other SharePoint API entities.
-
-A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations.
+A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations. Alternatevely, search based data fetching can be used for rollup scenarios grabbing data from as many sites as needed.
 
 ```yaml
 # sharepoint.yml
@@ -172,6 +170,66 @@ spec:
       alias: "department"
 ```
 
+#### User Profiles
+
+User Profiles are fetched via Search API, so the search should be configured in the farm.
+
+Search drived data source can be user only with user associated authentication strategies. E.g. it won't work with `addin` strategy.
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  # Inclide `profiles` property to fetch user profiles
+  # Object structure for extensibility (adding custom properties)
+  profiles:
+    enabled: true
+    # Optional, an alias for the table name
+    alias: "profile"
+```
+
+#### Search queries
+
+Search drived data source can be user only with user associated authentication strategies. E.g. it won't work with `addin` strategy.
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  # A map of search queries
+  search:
+    # Query name (whatever you want to name a resulted table)
+    # Should be unique within other compound aliases
+    documents:
+      # Required, search query text
+      # https://learn.microsoft.com/en-us/sharepoint/dev/general-development/sharepoint-search-rest-api-overview#querytext-parameter
+      query_text: "*"
+      # Optional, the managed properties to return in the search results
+      # https://learn.microsoft.com/en-us/sharepoint/dev/general-development/sharepoint-search-rest-api-overview#selectproperties
+      # By defining the list of properties, you also tell the plugin
+      # to have correcponding columns in the table
+      select_properties:
+        - Size
+        - Title
+        - ContentTypeId
+        - IsDocument
+        - FileType
+        - DocId
+        - SPWebUrl
+        - SiteId
+        - WebId
+        - ListId
+      # Optional, whether duplicate items are removed from the results
+      # https://learn.microsoft.com/en-us/sharepoint/dev/general-development/sharepoint-search-rest-api-overview#trimduplicates
+      trim_duplicates: true
+    profiles:
+      query_text: "*",
+      trim_duplicates: false
+      # The result source ID to use for executing the search query.
+      # https://learn.microsoft.com/en-us/sharepoint/dev/general-development/sharepoint-search-rest-api-overview#sourceid
+      source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
+```
+
 ## Get started
 
 ### Install CloudQuery
@@ -202,7 +260,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.3.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.4.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:
@@ -266,7 +324,7 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v1.3.0"
+  version: "v1.4.0"
   spec:
     connection_string: ./db.sql
 ```
@@ -284,9 +342,9 @@ You should see the following output:
 Loading spec(s) from sharepoint_reg.yml, sqlite.yml
 Downloading https://github.com/koltyakov/cq-source-sharepoint/releases/download/v1.0.0/cq-source-sharepoint_darwin_arm64.zip
 Downloading 100% |█████████████████████████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
-Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.3.0)]
+Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.4.0)]
 Migration completed successfully.
-Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.3.0)]
+Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.4.0)]
 Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
 ```
 
