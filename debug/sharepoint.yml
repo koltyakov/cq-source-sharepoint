@@ -7,11 +7,16 @@ spec:
   destinations: ["${CQ_DESTINATION}"]
   spec:
     auth:
-      strategy: "addin"
+      # strategy: "addin"
+      # creds:
+      #   siteUrl: ${SP_SITE_URL}
+      #   clientId: ${SP_CLIENT_ID}
+      #   clientSecret: ${SP_CLIENT_SECRET}
+      strategy: "saml"
       creds:
         siteUrl: ${SP_SITE_URL}
-        clientId: ${SP_CLIENT_ID}
-        clientSecret: ${SP_CLIENT_SECRET}
+        username: ${SP_USERNAME}
+        password: ${SP_PASSWORD}
     lists:
       _catalogs/users:
         select:
@@ -60,3 +65,23 @@ spec:
     mmd:
       8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
         alias: "department"
+    profiles:
+      enabled: false
+    search:
+      media:
+        query_text: "media"
+        select_properties:
+          - Size
+          - Title
+          - ContentTypeId
+          - IsDocument
+          - FileType
+          - DocId
+          - SPWebUrl
+          - SiteId
+          - WebId
+          - ListId
+      profiles:
+        query_text: "*"
+        source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
+        trim_duplicates: false

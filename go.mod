@@ -6,7 +6,7 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.20.1
 	github.com/cloudquery/plugin-sdk v1.40.0
 	github.com/koltyakov/gosip v0.0.0-20230225162407-d90f1db8d30e
-	github.com/koltyakov/gosip-sandbox v0.0.0-20221012144252-38b6671ec9db
+	github.com/koltyakov/gosip-sandbox v0.0.0-20230302062522-dda2c9217a2b
 	github.com/rs/zerolog v1.29.0
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/thoas/go-funk v0.9.3
@@ -34,7 +34,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/zerolog/v2 v2.0.0-rc.3 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
-	github.com/koltyakov/lorca v0.1.9-0.20200112132759-701f901adf53 // indirect
+	github.com/koltyakov/lorca v0.1.9-0.20230301032335-65834262f4bf // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
@@ -54,7 +54,7 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923 // indirect
+	google.golang.org/genproto v0.0.0-20230301171018-9ab4bdc49ad5 // indirect
 	google.golang.org/grpc v1.53.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect

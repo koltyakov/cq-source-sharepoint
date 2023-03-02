@@ -5,9 +5,12 @@ import (
 	"strings"
 
 	"github.com/cloudquery/plugin-sdk/specs"
+	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
+	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
+	"github.com/koltyakov/cq-source-sharepoint/resources/search"
 )
 
 // Spec is the configuration for a SharePoint source
@@ -21,6 +24,12 @@ type Spec struct {
 
 	// A map of TermSets GUIDs to the MMD configuration
 	MMD map[string]mmd.Spec `json:"mmd"`
+
+	// User profiles configuration
+	Profiles profiles.Spec `json:"profiles"`
+
+	// Search query results
+	Search map[string]search.Spec `json:"search"`
 }
 
 // SetDefaults sets default values for top level spec
@@ -33,6 +42,12 @@ func (s *Spec) SetDefaults() {
 	for ListURI, listSpec := range s.Lists {
 		listSpec.SetDefault()
 		s.Lists[ListURI] = listSpec
+	}
+
+	// Set default values for Search specs
+	for searchName, searchSpec := range s.Search {
+		searchSpec.SetDefault()
+		s.Search[searchName] = searchSpec
 	}
 }
 
@@ -66,6 +81,39 @@ func (s *Spec) Validate() error {
 			return fmt.Errorf("duplicate alias \"%s\" for term set \"%s\" configuration", alias, terSetID)
 		}
 		aliases[alias] = true
+	}
+
+	// User profiles should have unique alias
+	if s.Profiles.Enabled {
+		alias := strings.ToLower("ups_profile")
+		if s.Profiles.Alias != "" {
+			alias = strings.ToLower("ups_" + s.Profiles.Alias)
+		}
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for user profiles configuration", alias)
+		}
+		aliases[alias] = true
+	}
+
+	// Search spec validations
+	for searchName, searchSpec := range s.Search {
+		// Query text is required
+		if searchSpec.QueryText == "" {
+			return fmt.Errorf("queryText is required for search \"%s\" configuration", searchName)
+		}
+
+		// Unique alias name
+		alias := strings.ToLower("search_" + util.NormalizeEntityName(searchName))
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for search \"%s\" configuration", alias, searchName)
+		}
+		aliases[alias] = true
+	}
+
+	// App only auth is not supported with search driven sources
+	// ToDo: check other not user context auth strategies
+	if s.Auth.Strategy == "addin" && (s.Profiles.Enabled || len(s.Search) > 0) {
+		return fmt.Errorf("addin auth strategy is not supported with search API, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
 	}
 
 	return nil

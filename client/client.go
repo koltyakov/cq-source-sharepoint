@@ -10,14 +10,18 @@ import (
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
+	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
+	"github.com/koltyakov/cq-source-sharepoint/resources/search"
 	"github.com/rs/zerolog"
 )
 
 type Client struct {
 	Tables schema.Tables
 
-	lists *lists.Lists
-	mmd   *mmd.MMD
+	lists    *lists.Lists
+	mmd      *mmd.MMD
+	profiles *profiles.Profiles
+	search   *search.Search
 
 	source specs.Source
 	opts   source.Options
@@ -41,14 +45,20 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 	// sp.Conf(&api.RequestConfig{Context: ctx}) // for some reason gets context cancelled immediately
 
 	client := &Client{
-		lists: lists.NewLists(sp, logger),
-		mmd:   mmd.NewMMD(sp, logger),
+		lists:    lists.NewLists(sp, logger),
+		mmd:      mmd.NewMMD(sp, logger),
+		profiles: profiles.NewProfiles(sp, logger),
+		search:   search.NewSearch(sp, logger),
 
 		source: src,
 		opts:   opts,
 	}
 
-	client.Tables = make(schema.Tables, 0, len(spec.Lists))
+	tableCnt := len(spec.Lists) + len(spec.MMD)
+	if spec.Profiles.Enabled {
+		tableCnt++
+	}
+	client.Tables = make(schema.Tables, 0, tableCnt)
 
 	// Managed metadata tables prepare
 	for termSetID, mmdSpec := range spec.MMD {
@@ -70,6 +80,30 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("list", listURI).Str("columns", table.Columns.String()).Msg("columns for table")
+			client.Tables = append(client.Tables, table)
+		}
+	}
+
+	// User profiles tables prepare
+	if spec.Profiles.Enabled {
+		table, err := client.profiles.GetDestTable(spec.Profiles)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get table from user profiles: %w", err)
+		}
+		if table != nil {
+			logger.Debug().Str("table", table.Name).Str("columns", table.Columns.String()).Msg("columns for table")
+			client.Tables = append(client.Tables, table)
+		}
+	}
+
+	// Search tables prepare
+	for searchName, searchSpec := range spec.Search {
+		table, err := client.search.GetDestTable(searchName, searchSpec)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get table from search query \"%s\": %w", searchName, err)
+		}
+		if table != nil {
+			logger.Debug().Str("table", table.Name).Str("search", searchName).Str("columns", table.Columns.String()).Msg("columns for table")
 			client.Tables = append(client.Tables, table)
 		}
 	}

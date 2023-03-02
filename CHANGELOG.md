@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.4.0 (2023-03-01)
+
+### Features
+
+- User Profile Service data
+- Search queries data
+
 ## 1.3.0 (2023-02-28)
 
 ### Features
