@@ -51,7 +51,7 @@ func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, re
 			colVals := make([]any, len(table.Columns))
 
 			for i, col := range table.Columns {
-				prop := opts.FieldsMap[col.Name]
+				prop := col.Description
 				colVals[i] = util.GetRespValByProp(itemMap, prop)
 			}
 

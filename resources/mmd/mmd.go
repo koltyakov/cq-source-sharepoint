@@ -17,9 +17,8 @@ type MMD struct {
 }
 
 type Model struct {
-	ID        string
-	Spec      Spec
-	FieldsMap map[string]string // cq column name to column metadata
+	ID   string
+	Spec Spec
 }
 
 func NewMMD(sp *api.SP, logger zerolog.Logger) *MMD {
@@ -40,51 +39,30 @@ func (m *MMD) GetDestTable(terSetID string, spec Spec) (*schema.Table, error) {
 		Name:        "sharepoint_mmd_" + tableName,
 		Description: "", // TermSetName
 		Columns: []schema.Column{
-			{Name: "id", Type: schema.TypeUUID, CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
-			{Name: "name", Type: schema.TypeString},
-			{Name: "description", Type: schema.TypeString},
-			{Name: "tagging", Type: schema.TypeBool},
-			{Name: "deprecated", Type: schema.TypeBool},
-			{Name: "pinned", Type: schema.TypeBool},
-			{Name: "reused", Type: schema.TypeBool},
-			{Name: "root", Type: schema.TypeBool},
-			{Name: "source", Type: schema.TypeBool},
-			{Name: "path", Type: schema.TypeStringArray},
-			{Name: "children", Type: schema.TypeInt},
-			{Name: "merged", Type: schema.TypeUUIDArray},
-			{Name: "shared_props", Type: schema.TypeJSON},
-			{Name: "local_props", Type: schema.TypeJSON},
-			{Name: "custom_sort", Type: schema.TypeUUIDArray},
-			{Name: "owner", Type: schema.TypeString},
-			{Name: "created", Type: schema.TypeTimestamp},
-			{Name: "modified", Type: schema.TypeTimestamp},
+			{Name: "id", Type: schema.TypeUUID, Description: "Id", CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
+			{Name: "name", Type: schema.TypeString, Description: "Name"},
+			{Name: "description", Type: schema.TypeString, Description: "Description"},
+			{Name: "tagging", Type: schema.TypeBool, Description: "IsAvailableForTagging"},
+			{Name: "deprecated", Type: schema.TypeBool, Description: "IsDeprecated"},
+			{Name: "pinned", Type: schema.TypeBool, Description: "IsPinned"},
+			{Name: "reused", Type: schema.TypeBool, Description: "IsReused"},
+			{Name: "root", Type: schema.TypeBool, Description: "IsRoot"},
+			{Name: "source", Type: schema.TypeBool, Description: "IsSourceTerm"},
+			{Name: "path", Type: schema.TypeStringArray, Description: "Path"},
+			{Name: "children", Type: schema.TypeInt, Description: "ChildrenCount"},
+			{Name: "merged", Type: schema.TypeUUIDArray, Description: "MergedTermIds"},
+			{Name: "shared_props", Type: schema.TypeJSON, Description: "CustomProperties"},
+			{Name: "local_props", Type: schema.TypeJSON, Description: "LocalCustomProperties"},
+			{Name: "custom_sort", Type: schema.TypeUUIDArray, Description: "CustomSortOrder"},
+			{Name: "owner", Type: schema.TypeString, Description: "Owner"},
+			{Name: "created", Type: schema.TypeTimestamp, Description: "CreatedDate"},
+			{Name: "modified", Type: schema.TypeTimestamp, Description: "LastModifiedDate"},
 		},
 	}
 
-	// ToDo: Remove this reverce mapping
 	m.TablesMap[table.Name] = Model{
 		ID:   terSetID,
 		Spec: spec,
-		FieldsMap: map[string]string{
-			"id":           "Id",
-			"name":         "Name",
-			"description":  "Description",
-			"tagging":      "IsAvailableForTagging",
-			"deprecated":   "IsDeprecated",
-			"pinned":       "IsPinned",
-			"reused":       "IsReused",
-			"root":         "IsRoot",
-			"source":       "IsSourceTerm",
-			"path":         "PathOfTerm",
-			"children":     "TermsCount",
-			"merged":       "MergedTermIds",
-			"shared_props": "CustomProperties",
-			"local_props":  "LocalCustomProperties",
-			"custom_sort":  "CustomSortOrder",
-			"owner":        "Owner",
-			"created":      "CreatedDate",
-			"modified":     "LastModifiedDate",
-		},
 	}
 
 	return table, nil

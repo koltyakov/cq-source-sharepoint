@@ -33,7 +33,7 @@ func (m *MMD) Sync(ctx context.Context, metrics *source.TableClientMetrics, res 
 		colVals := make([]any, len(table.Columns))
 
 		for i, col := range table.Columns {
-			prop := opts.FieldsMap[col.Name]
+			prop := col.Description
 			colVals[i] = getRespValByProp(itemMap, prop)
 		}
 

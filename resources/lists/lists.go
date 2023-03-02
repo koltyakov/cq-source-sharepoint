@@ -19,9 +19,8 @@ type Lists struct {
 }
 
 type Model struct {
-	URI       string
-	Spec      Spec
-	FieldsMap map[string]string // cq column name to column metadata
+	URI  string
+	Spec Spec
 }
 
 func NewLists(sp *api.SP, logger zerolog.Logger) *Lists {
@@ -66,9 +65,8 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 
 	fieldsData := fields.Data()
 	model := &Model{
-		URI:       listURI,
-		Spec:      spec,
-		FieldsMap: map[string]string{},
+		URI:  listURI,
+		Spec: spec,
 	}
 
 	// ToDo: Rearchitect table construction logic
@@ -96,15 +94,14 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 			}
 
 			table.Columns = append(table.Columns, c)
-			model.FieldsMap[c.Name] = prop
 			continue
 		}
 
 		col := l.columnFromField(field, table.Name)
 		col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
+		col.Description = prop
 
 		table.Columns = append(table.Columns, col)
-		model.FieldsMap[col.Name] = prop
 	}
 
 	l.TablesMap[table.Name] = *model
