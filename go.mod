@@ -6,7 +6,7 @@ require (
 	github.com/brianvoe/gofakeit/v6 v6.20.1
 	github.com/cloudquery/plugin-sdk v1.40.0
 	github.com/koltyakov/gosip v0.0.0-20230225162407-d90f1db8d30e
-	github.com/koltyakov/gosip-sandbox v0.0.0-20230301032646-2d3e5f8d5853
+	github.com/koltyakov/gosip-sandbox v0.0.0-20230302062522-dda2c9217a2b
 	github.com/rs/zerolog v1.29.0
 	github.com/schollz/progressbar/v3 v3.13.0
 	github.com/thoas/go-funk v0.9.3
