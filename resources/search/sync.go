@@ -1,4 +1,4 @@
-package profiles
+package search
 
 import (
 	"context"
@@ -12,13 +12,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func (u *Profiles) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
-	logger := u.logger.With().Str("table", table.Name).Logger()
+func (s *Search) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+	opts := s.TablesMap[table.Name]
+	logger := s.logger.With().Str("table", table.Name).Logger()
 
 	rowLimit := 500
 	startRow := 0
 
-	data, err := searchUsers(u.sp, startRow, rowLimit)
+	data, err := searchData(s.sp, opts.Spec, startRow, rowLimit)
 
 	for {
 		if err != nil {
@@ -58,21 +59,20 @@ func (u *Profiles) Sync(ctx context.Context, metrics *source.TableClientMetrics,
 			break
 		}
 		startRow += rowLimit
-		data, err = searchUsers(u.sp, startRow, rowLimit)
+		data, err = searchData(s.sp, opts.Spec, startRow, rowLimit)
 	}
 
 	return nil
 }
 
-func searchUsers(sp *api.SP, startRow int, rowLimit int) (api.SearchResp, error) {
+func searchData(sp *api.SP, spec Spec, startRow int, rowLimit int) (api.SearchResp, error) {
 	return sp.Search().PostQuery(&api.SearchQuery{
-		QueryText:          "*",
-		SourceID:           "b09a7990-05ea-4af9-81ef-edfab16c4e31",
-		SelectProperties:   userProps,
-		TrimDuplicates:     false,
-		EnableInterleaving: true,
-		StartRow:           startRow,
-		RowLimit:           rowLimit,
+		QueryText:        spec.QueryText,
+		SourceID:         spec.SourceID,
+		SelectProperties: spec.SelectProperties,
+		TrimDuplicates:   spec.TrimDuplicates,
+		StartRow:         startRow,
+		RowLimit:         rowLimit,
 	})
 }
 

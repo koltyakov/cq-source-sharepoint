@@ -11,6 +11,7 @@ import (
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
 	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
+	"github.com/koltyakov/cq-source-sharepoint/resources/search"
 	"github.com/rs/zerolog"
 )
 
@@ -20,6 +21,7 @@ type Client struct {
 	lists    *lists.Lists
 	mmd      *mmd.MMD
 	profiles *profiles.Profiles
+	search   *search.Search
 
 	source specs.Source
 	opts   source.Options
@@ -46,6 +48,7 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		lists:    lists.NewLists(sp, logger),
 		mmd:      mmd.NewMMD(sp, logger),
 		profiles: profiles.NewProfiles(sp, logger),
+		search:   search.NewSearch(sp, logger),
 
 		source: src,
 		opts:   opts,
@@ -89,6 +92,18 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("columns", table.Columns.String()).Msg("columns for table")
+			client.Tables = append(client.Tables, table)
+		}
+	}
+
+	// Search tables prepare
+	for searchName, searchSpec := range spec.Search {
+		table, err := client.search.GetDestTable(searchName, searchSpec)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get table from search query \"%s\": %w", searchName, err)
+		}
+		if table != nil {
+			logger.Debug().Str("table", table.Name).Str("search", searchName).Str("columns", table.Columns.String()).Msg("columns for table")
 			client.Tables = append(client.Tables, table)
 		}
 	}

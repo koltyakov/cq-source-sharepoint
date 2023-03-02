@@ -18,8 +18,7 @@ type Profiles struct {
 }
 
 type Model struct {
-	Spec      Spec
-	FieldsMap map[string]string // cq column name to column metadata
+	Spec Spec
 }
 
 func NewProfiles(sp *api.SP, logger zerolog.Logger) *Profiles {
@@ -42,32 +41,20 @@ func (u *Profiles) GetDestTable(spec Spec) (*schema.Table, error) {
 		Name:        "sharepoint_ups_" + tableName,
 		Description: "User Profiles",
 		Columns: []schema.Column{
-			{Name: "id", Type: schema.TypeUUID, CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
-			{Name: "title", Type: schema.TypeString},
-			{Name: "email", Type: schema.TypeString},
-			{Name: "job", Type: schema.TypeString},
-			{Name: "department", Type: schema.TypeString},
-			{Name: "picture", Type: schema.TypeString},
-			{Name: "account", Type: schema.TypeString},
-			{Name: "path", Type: schema.TypeString},
-			{Name: "modified", Type: schema.TypeTimestamp},
+			{Name: "id", Type: schema.TypeUUID, Description: "UniqueId", CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
+			{Name: "title", Type: schema.TypeString, Description: "Title"},
+			{Name: "email", Type: schema.TypeString, Description: "WorkEmail"},
+			{Name: "job", Type: schema.TypeString, Description: "JobTitle"},
+			{Name: "department", Type: schema.TypeString, Description: "Department"},
+			{Name: "picture", Type: schema.TypeString, Description: "PictureURL"},
+			{Name: "account", Type: schema.TypeString, Description: "AccountName"},
+			{Name: "path", Type: schema.TypeString, Description: "Path"},
+			{Name: "modified", Type: schema.TypeTimestamp, Description: "LastModifiedTime"},
 		},
 	}
 
-	// ToDo: Remove this reverce mapping
 	u.TablesMap[table.Name] = Model{
 		Spec: spec,
-		FieldsMap: map[string]string{
-			"id":         "UniqueId",
-			"title":      "Title",
-			"email":      "WorkEmail",
-			"job":        "JobTitle",
-			"department": "Department",
-			"picture":    "PictureURL",
-			"account":    "AccountName",
-			"path":       "Path",
-			"modified":   "LastModifiedTime",
-		},
 	}
 
 	return table, nil
