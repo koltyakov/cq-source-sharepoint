@@ -180,7 +180,7 @@ Search drived data source can be user only with user associated authentication s
 # sharepoint.yml
 # ...
 spec:
-  # Inclide `profiles` property to fetch user profiles
+  # Include `profiles` property to fetch user profiles
   # Object structure for extensibility (adding custom properties)
   profiles:
     enabled: true
