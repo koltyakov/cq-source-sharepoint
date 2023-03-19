@@ -12,11 +12,14 @@ spec:
       #   siteUrl: ${SP_SITE_URL}
       #   clientId: ${SP_CLIENT_ID}
       #   clientSecret: ${SP_CLIENT_SECRET}
-      strategy: "saml"
+      # strategy: "saml"
+      # creds:
+      #   siteUrl: ${SP_SITE_URL}
+      #   username: ${SP_USERNAME}
+      #   password: ${SP_PASSWORD}
+      strategy: "ondemand"
       creds:
         siteUrl: ${SP_SITE_URL}
-        username: ${SP_USERNAME}
-        password: ${SP_PASSWORD}
     lists:
       _catalogs/users:
         select:
