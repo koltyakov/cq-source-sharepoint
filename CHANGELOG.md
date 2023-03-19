@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2023-03-19)
+
+### Fixes
+
+- On-Demand auth failing open Chrome window
+
 ## 1.4.0 (2023-03-01)
 
 ### Features
