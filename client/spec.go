@@ -69,6 +69,9 @@ func (s *Spec) Validate() error {
 			return fmt.Errorf("duplicate alias \"%s\" for list \"%s\" configuration", alias, listURI)
 		}
 		aliases[alias] = true
+		if err := listSpec.Validate(); err != nil {
+			return fmt.Errorf("list \"%s\" configuration is invalid: %s", listURI, err)
+		}
 	}
 
 	// All term sets should have unique aliases
@@ -108,6 +111,9 @@ func (s *Spec) Validate() error {
 			return fmt.Errorf("duplicate alias \"%s\" for search \"%s\" configuration", alias, searchName)
 		}
 		aliases[alias] = true
+		if err := searchSpec.Validate(); err != nil {
+			return fmt.Errorf("search \"%s\" configuration is invalid: %s", searchName, err)
+		}
 	}
 
 	// App only auth is not supported with search driven sources

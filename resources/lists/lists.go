@@ -85,10 +85,15 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 			}
 		}
 
+		fieldAlias := prop
+		if a, ok := spec.fieldsMapping[prop]; ok {
+			fieldAlias = a
+		}
+
 		// Props is not presented in list's fields
 		if field == nil {
 			c := schema.Column{
-				Name:        util.NormalizeEntityName(prop),
+				Name:        util.NormalizeEntityName(fieldAlias),
 				Description: prop,
 				Type:        schema.TypeString,
 			}
@@ -97,6 +102,7 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 			continue
 		}
 
+		field.InternalName = fieldAlias
 		col := l.columnFromField(field, table.Name)
 		col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
 		col.Description = prop

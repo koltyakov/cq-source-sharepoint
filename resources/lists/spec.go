@@ -1,6 +1,9 @@
 package lists
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/thoas/go-funk"
 )
@@ -28,6 +31,9 @@ type Spec struct {
 	// Optional, an alias for the table name
 	// Don't map different lists to the same table - such scenario is not supported
 	Alias string `json:"alias"`
+
+	// Custom fields mapping settings
+	fieldsMapping map[string]string
 }
 
 // SetDefault sets default values for list spec
@@ -36,13 +42,44 @@ func (s *Spec) SetDefault() {
 		s.Select = []string{}
 	}
 
-	exclude := []string{"*"}
+	exclude := []string{}
 	prepProps := []string{"ID"}
 	apndProps := []string{"Created", "AuthorId", "Modified", "EditorId"}
 
+	// Extract arrow syntax fields mapping
+	s.fieldsMapping = util.GetFieldsMapping(s.Select)
+	for i, field := range s.Select {
+		f, _ := util.GetFieldMapping(field)
+		s.Select[i] = f
+	}
+
 	s.Select = funk.FilterString(s.Select, func(field string) bool {
+		// Disable wildcard or nested wildcard selectors
+		if strings.Contains(field, "*") {
+			return false
+		}
 		return !funk.ContainsString(util.ConcatSlice(exclude, util.ConcatSlice(prepProps, apndProps)), field)
 	})
 
 	s.Select = util.ConcatSlice(prepProps, util.ConcatSlice(s.Select, apndProps))
+}
+
+// Validate validates list spec
+func (s *Spec) Validate() error {
+	aliases := make([]string, len(s.Select))
+	for i, field := range s.Select {
+		aliases[i] = util.NormalizeEntityName(field)
+		if alias, ok := s.fieldsMapping[field]; ok {
+			aliases[i] = util.NormalizeEntityName(alias)
+		}
+	}
+
+	// All aliases should be unique, output which is not unique
+	for i, alias := range aliases {
+		if funk.ContainsString(aliases[i+1:], alias) {
+			return fmt.Errorf("alias \"%s\" is not unique", alias)
+		}
+	}
+
+	return nil
 }

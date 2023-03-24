@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 (2023-03-23)
+
+- Fields mapping support
+
 ## 1.4.1 (2023-03-19)
 
 ### Fixes
