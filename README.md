@@ -117,7 +117,7 @@ spec:
   # profiles: # see more below
 ```
 
-### Content Types based rollup
+#### Content Types based rollup
 
 Content Types based rollup allows to fetch data from multiple lists or document libraries based on the Content Type configuration.
 
