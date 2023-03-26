@@ -14,7 +14,6 @@ import (
 
 func (s *Search) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
 	opts := s.TablesMap[table.Name]
-	logger := s.logger.With().Str("table", table.Name).Logger()
 
 	rowLimit := 500
 	startRow := 0
@@ -32,7 +31,6 @@ func (s *Search) Sync(ctx context.Context, metrics *source.TableClientMetrics, r
 		for _, row := range rows {
 			ks := funk.Keys(row).([]string)
 			sort.Strings(ks)
-			logger.Debug().Strs("keys", ks).Msg("item keys")
 
 			colVals := make([]any, len(table.Columns))
 

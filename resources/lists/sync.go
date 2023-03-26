@@ -46,7 +46,6 @@ func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, re
 		for _, itemMap := range itemList {
 			ks := funk.Keys(itemMap).([]string)
 			sort.Strings(ks)
-			logger.Debug().Strs("keys", ks).Msg("item keys")
 
 			colVals := make([]any, len(table.Columns))
 
@@ -81,6 +80,11 @@ func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, re
 func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, error) {
 	resource := schema.NewResourceData(table, nil, values)
 	for i, col := range table.Columns {
+		if col.Type == schema.TypeString {
+			if values[i] != nil {
+				values[i] = fmt.Sprintf("%v", values[i])
+			}
+		}
 		if err := resource.Set(col.Name, values[i]); err != nil {
 			return nil, err
 		}

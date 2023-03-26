@@ -3,6 +3,7 @@ package lists
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -95,7 +96,7 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 			c := schema.Column{
 				Name:        util.NormalizeEntityName(fieldAlias),
 				Description: prop,
-				Type:        schema.TypeString,
+				Type:        l.typeFromPropName(prop),
 			}
 
 			table.Columns = append(table.Columns, c)
@@ -179,4 +180,11 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 	c.Name = util.NormalizeEntityName(field.InternalName)
 
 	return c
+}
+
+func (l *Lists) typeFromPropName(prop string) schema.ValueType {
+	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
+		return schema.TypeInt
+	}
+	return schema.TypeString
 }

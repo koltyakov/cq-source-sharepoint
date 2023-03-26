@@ -13,8 +13,6 @@ import (
 )
 
 func (u *Profiles) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
-	logger := u.logger.With().Str("table", table.Name).Logger()
-
 	rowLimit := 500
 	startRow := 0
 
@@ -31,7 +29,6 @@ func (u *Profiles) Sync(ctx context.Context, metrics *source.TableClientMetrics,
 		for _, row := range rows {
 			ks := funk.Keys(row).([]string)
 			sort.Strings(ks)
-			logger.Debug().Strs("keys", ks).Msg("item keys")
 
 			colVals := make([]any, len(table.Columns))
 
