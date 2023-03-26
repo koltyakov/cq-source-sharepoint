@@ -272,18 +272,18 @@ Follow [quickstart instructions](https://www.cloudquery.io/docs/quickstart/).
 
 ### Source sample data
 
-Provision and seed some sample data. [See more](./cmd/demo/README.md). Which satisfy the schema below.
+Provision and seed some sample data. [See more](./cmd/seed/README.md). Which satisfy the schema below.
 
 ### Auth configuration
 
 ```bash
 # .env or env vars export
 # See more details in https://go.spflow.com/auth/strategies
-SP_AUTH_STRATEGY=addin
+SP_AUTH_STRATEGY=ondemand
 SP_SITE_URL=https://contoso.sharepoint.com/sites/site
-SP_CLIENT_ID=97e6ed51-777c-42da-8f07-b035a5ac057b
-SP_CLIENT_SECRET="1wlWvB...AqSP8="
 ```
+
+or use "ondeman" auth.
 
 ### Source configuration
 
@@ -301,8 +301,7 @@ spec:
       strategy: "${SP_AUTH_STRATEGY}"
       creds:
         siteUrl: ${SP_SITE_URL}
-        clientId: ${SP_CLIENT_ID}
-        clientSecret: ${SP_CLIENT_SECRET}
+        # align creds with the used strategy
     lists:
       _catalogs/users:
         select:
@@ -358,7 +357,7 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v1.6.0"
+  version: "v1.3.5"
   spec:
     connection_string: ./db.sql
 ```
