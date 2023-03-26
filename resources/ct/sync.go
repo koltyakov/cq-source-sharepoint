@@ -35,6 +35,7 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 
 		// Iterate over all lists
 		for _, listID := range lists {
+			c.logger.Debug().Msgf("list sync: %s", listID)
 			if err := c.syncList(ctx, webURL, listID, metrics, res, table); err != nil {
 				return err
 			}
@@ -80,7 +81,13 @@ func (c *ContentTypesRollup) getWebs(webURL string) ([]string, error) {
 
 func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, error) {
 	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
-	resp, err := web.Lists().Select("Id,ContentTypes/StringId").Expand("ContentTypes").Top(5000).Get()
+
+	resp, err := web.Lists().
+		Select("Id,ContentTypes/StringId").
+		Filter("AllowContentTypes eq true and Hidden eq false").
+		Expand("ContentTypes").
+		Top(5000).Get()
+
 	if err != nil {
 		return nil, err
 	}
