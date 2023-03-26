@@ -60,6 +60,18 @@ We recomment Azure AD (`azurecert`) or Add-In (`addin`) auth for production scen
 
 SharePoint On-Premise auth is also supported, based on your farm configuration you can use: `ntlm`, `adfs` to name a few.
 
+Need to hands on quickly without configuring Azure Apps or Addins or asking an admin to turn on app password? Try On-Demand auth:
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  auth:
+    strategy: "ondemand"
+    creds:
+      siteUrl: "https://contoso.sharepoint.com/sites/cloudquery"
+```
+
 ### Entities configuration
 
 A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations. Alternatevely, search based data fetching can be used for rollup scenarios grabbing data from as many sites as needed.
