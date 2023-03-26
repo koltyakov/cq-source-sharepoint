@@ -71,7 +71,7 @@ func (c *ContentTypesRollup) GetDestTable(ctID string, spec Spec) (*schema.Table
 				propName += "Id"
 			}
 			if propName == prop {
-				field = &fieldData
+				field = fieldData
 				break
 			}
 		}
@@ -111,10 +111,10 @@ func (c *ContentTypesRollup) GetDestTable(ctID string, spec Spec) (*schema.Table
 }
 
 type contentTypeInfo struct {
-	ID          string          `json:"StringId"`
-	Name        string          `json:"Name"`
-	Description string          `json:"Description"`
-	Fields      []api.FieldInfo `json:"Fields"`
+	ID          string           `json:"StringId"`
+	Name        string           `json:"Name"`
+	Description string           `json:"Description"`
+	Fields      []*api.FieldInfo `json:"Fields"`
 }
 
 func (c *ContentTypesRollup) getContentTypeInfo(ctID string) (*contentTypeInfo, error) {
@@ -141,49 +141,49 @@ func (c *ContentTypesRollup) getContentTypeInfo(ctID string) (*contentTypeInfo, 
 	return info[0], nil
 }
 
-func (с *ContentTypesRollup) columnFromField(field *api.FieldInfo, tableName string) schema.Column {
-	logger := с.logger.With().Str("table", tableName).Logger()
+func (c *ContentTypesRollup) columnFromField(field *api.FieldInfo, tableName string) schema.Column {
+	logger := c.logger.With().Str("table", tableName).Logger()
 
-	c := schema.Column{
+	col := schema.Column{
 		Description: field.Description,
 	}
 
 	switch field.TypeAsString {
 	case "Text", "Note", "ContentTypeId":
-		c.Type = schema.TypeString
+		col.Type = schema.TypeString
 	case "Integer", "Counter":
-		c.Type = schema.TypeInt
+		col.Type = schema.TypeInt
 	case "Currency":
-		c.Type = schema.TypeFloat
+		col.Type = schema.TypeFloat
 	case "Number":
-		c.Type = schema.TypeFloat
+		col.Type = schema.TypeFloat
 	case "DateTime":
-		c.Type = schema.TypeTimestamp
+		col.Type = schema.TypeTimestamp
 	case "Boolean", "Attachments":
-		c.Type = schema.TypeBool
+		col.Type = schema.TypeBool
 	case "Guid":
-		c.Type = schema.TypeUUID
+		col.Type = schema.TypeUUID
 	case "Lookup", "User":
-		c.Type = schema.TypeInt
+		col.Type = schema.TypeInt
 	case "LookupMulti", "UserMulti":
-		c.Type = schema.TypeIntArray
+		col.Type = schema.TypeIntArray
 	case "Choice":
-		c.Type = schema.TypeString
+		col.Type = schema.TypeString
 	case "MultiChoice":
-		c.Type = schema.TypeStringArray
+		col.Type = schema.TypeStringArray
 	case "Computed":
-		c.Type = schema.TypeString
+		col.Type = schema.TypeString
 	default:
 		logger.Warn().Str("type", field.TypeAsString).Int("kind", field.FieldTypeKind).Str("field_title", field.Title).Str("field_id", field.ID).Msg("unknown type, assuming JSON")
-		c.Type = schema.TypeString
+		col.Type = schema.TypeString
 	}
 
-	c.Name = util.NormalizeEntityName(field.InternalName)
+	col.Name = util.NormalizeEntityName(field.InternalName)
 
-	return c
+	return col
 }
 
-func (c *ContentTypesRollup) typeFromPropName(prop string) schema.ValueType {
+func (*ContentTypesRollup) typeFromPropName(prop string) schema.ValueType {
 	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
 		return schema.TypeInt
 	}

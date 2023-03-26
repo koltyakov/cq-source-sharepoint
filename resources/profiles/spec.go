@@ -9,4 +9,4 @@ type Spec struct {
 }
 
 // SetDefault sets default values for list spec
-func (s *Spec) SetDefault() {}
+func (*Spec) SetDefault() {}

@@ -8,4 +8,4 @@ type Spec struct {
 }
 
 // SetDefault sets default values for MMD spec
-func (s *Spec) SetDefault() {}
+func (*Spec) SetDefault() {}

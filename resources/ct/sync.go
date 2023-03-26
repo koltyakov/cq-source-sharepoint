@@ -18,7 +18,7 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 	logger := c.logger.With().Str("table", table.Name).Logger()
 
 	logger.Debug().Msgf("getting webs for %s", table.Name)
-	webUrls, err := c.getWebs(ctx, c.sp.ToURL())
+	webUrls, err := c.getWebs(c.sp.ToURL())
 	if err != nil {
 		return err
 	}
@@ -27,7 +27,7 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 	// Iterate over all webs
 	for _, webURL := range webUrls {
 		logger.Debug().Msgf("getting lists for %s", webURL)
-		lists, err := c.getLists(ctx, webURL, opts.ContentTypeID)
+		lists, err := c.getLists(webURL, opts.ContentTypeID)
 		if err != nil {
 			return err
 		}
@@ -44,7 +44,7 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 	return nil
 }
 
-func (c *ContentTypesRollup) getWebs(ctx context.Context, webURL string) ([]string, error) {
+func (c *ContentTypesRollup) getWebs(webURL string) ([]string, error) {
 	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
 
 	resp, err := web.Webs().Select("Url,Webs/Url").Expand("Webs").Top(5000).Get()
@@ -67,7 +67,7 @@ func (c *ContentTypesRollup) getWebs(ctx context.Context, webURL string) ([]stri
 	for _, web := range webs {
 		webURLs = append(webURLs, web.URL)
 		for _, subWeb := range web.Webs {
-			subWebs, err := c.getWebs(ctx, subWeb.URL)
+			subWebs, err := c.getWebs(subWeb.URL)
 			if err != nil {
 				return nil, err
 			}
@@ -78,7 +78,7 @@ func (c *ContentTypesRollup) getWebs(ctx context.Context, webURL string) ([]stri
 	return webURLs, nil
 }
 
-func (c *ContentTypesRollup) getLists(ctx context.Context, webURL string, ctID string) ([]string, error) {
+func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, error) {
 	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
 	resp, err := web.Lists().Select("Id,ContentTypes/StringId").Expand("ContentTypes").Top(5000).Get()
 	if err != nil {

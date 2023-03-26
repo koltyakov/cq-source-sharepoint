@@ -96,7 +96,7 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 			c := schema.Column{
 				Name:        util.NormalizeEntityName(fieldAlias),
 				Description: prop,
-				Type:        l.typeFromPropName(prop),
+				Type:        typeFromPropName(prop),
 			}
 
 			table.Columns = append(table.Columns, c)
@@ -182,7 +182,7 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 	return c
 }
 
-func (l *Lists) typeFromPropName(prop string) schema.ValueType {
+func typeFromPropName(prop string) schema.ValueType {
 	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
 		return schema.TypeInt
 	}
