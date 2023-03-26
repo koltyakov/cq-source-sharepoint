@@ -129,7 +129,7 @@ All items based on the parent content type are fetched from all lists and subweb
 spec:
   # A map of Content Types with the rollup configurations
   content_types:
-    # Base Content Type name or ID (e.g. 0x0101009D1CB255D)
+    # Base Content Type name or ID (e.g. "0x0101009D1CB255D" must be in quotes)
     Task:
       # REST `$select` OData modificator, fields entity properties array
       select:
