@@ -279,7 +279,6 @@ Provision and seed some sample data. [See more](./cmd/seed/README.md). Which sat
 ```bash
 # .env or env vars export
 # See more details in https://go.spflow.com/auth/strategies
-SP_AUTH_STRATEGY=ondemand
 SP_SITE_URL=https://contoso.sharepoint.com/sites/site
 ```
 
@@ -298,7 +297,7 @@ spec:
   destinations: ["sqlite"]
   spec:
     auth:
-      strategy: "${SP_AUTH_STRATEGY}"
+      strategy: "ondemand"
       creds:
         siteUrl: ${SP_SITE_URL}
         # align creds with the used strategy

@@ -6,7 +6,7 @@ import (
 
 	"github.com/koltyakov/gosip"
 	ntlm2 "github.com/koltyakov/gosip-sandbox/strategies/ntlm"
-	ondemand "github.com/koltyakov/gosip-sandbox/strategies/ondemand"
+	"github.com/koltyakov/gosip-sandbox/strategies/ondemand"
 	"github.com/koltyakov/gosip/api"
 	"github.com/koltyakov/gosip/auth"
 )
