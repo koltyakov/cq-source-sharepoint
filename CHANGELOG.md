@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 (2023-03-26)
+
+- Content Types based rollup
+
 ## 1.5.0 (2023-03-23)
 
 - Fields mapping support

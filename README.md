@@ -10,6 +10,7 @@
 ## Features
 
 - Lists and Document Libraries data fetching
+- Content Types based rollup
 - User Information List data fetching
 - Search Query data source
 - User Profiles data source
@@ -29,7 +30,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.5.0" # provide the latest stable version
+  version: "v1.6.0" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -98,14 +99,36 @@ spec:
     Lists/AnotherList:
       select:
         - Title
-  # A map of MMD term sets IDs (GUIDs)
-  # If no term sets provided, no terms will be fetched
-  mmd:
-    # Term set ID
-    8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+  # content_types: # see more below
+  # mmd: # see more below
+  # search: # see more below
+  # profiles: # see more below
+```
+
+### Content Types based rollup
+
+Content Types based rollup allows to fetch data from multiple lists or document libraries based on the Content Type configuration.
+
+All items based on the parent content type are fetched from all lists and subwebs below the context site URL.
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  # A map of Content Types with the rollup configurations
+  content_types:
+    # Base Content Type name or ID (e.g. 0x0101009D1CB255D)
+    Task:
+      # REST `$select` OData modificator, fields entity properties array
+      select:
+        - Title
+        - AssignedTo/Title
+      # REST `$expand` OData modificator, fields entity properties array
+      expand:
+        - AssignedTo
       # Optional, an alias for the table name
-      # the name of the alias is prefixed with `mmd_`
-      alias: "department"
+      # the name of the alias is prefixed with `rollup_`
+      alias: "task"
 ```
 
 #### User Information List
@@ -160,8 +183,12 @@ To configure managed metadata fetching, you need to provide a term set ID (GUID)
 # sharepoint.yml
 # ...
 spec:
+  # A map of MMD term sets IDs (GUIDs)
   mmd:
+    # Term set ID
     8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+      # Optional, an alias for the table name
+      # the name of the alias is prefixed with `mmd_`
       alias: "department"
 ```
 
@@ -255,7 +282,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.5.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.6.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:
@@ -319,7 +346,7 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v1.5.0"
+  version: "v1.6.0"
   spec:
     connection_string: ./db.sql
 ```
@@ -337,9 +364,9 @@ You should see the following output:
 Loading spec(s) from sharepoint_reg.yml, sqlite.yml
 Downloading https://github.com/koltyakov/cq-source-sharepoint/releases/download/v1.0.0/cq-source-sharepoint_darwin_arm64.zip
 Downloading 100% |█████████████████████████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
-Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.5.0)]
+Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.6.0)]
 Migration completed successfully.
-Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.5.0)]
+Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.6.0)]
 Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
 ```
 

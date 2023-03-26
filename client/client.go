@@ -8,6 +8,7 @@ import (
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/cloudquery/plugin-sdk/specs"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
+	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
 	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
@@ -18,10 +19,11 @@ import (
 type Client struct {
 	Tables schema.Tables
 
-	lists    *lists.Lists
-	mmd      *mmd.MMD
-	profiles *profiles.Profiles
-	search   *search.Search
+	lists        *lists.Lists
+	mmd          *mmd.MMD
+	profiles     *profiles.Profiles
+	search       *search.Search
+	contentTypes *ct.ContentTypesRollup
 
 	source specs.Source
 	opts   source.Options
@@ -45,10 +47,11 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 	// sp.Conf(&api.RequestConfig{Context: ctx}) // for some reason gets context cancelled immediately
 
 	client := &Client{
-		lists:    lists.NewLists(sp, logger),
-		mmd:      mmd.NewMMD(sp, logger),
-		profiles: profiles.NewProfiles(sp, logger),
-		search:   search.NewSearch(sp, logger),
+		lists:        lists.NewLists(sp, logger),
+		mmd:          mmd.NewMMD(sp, logger),
+		profiles:     profiles.NewProfiles(sp, logger),
+		search:       search.NewSearch(sp, logger),
+		contentTypes: ct.NewContentTypesRollup(sp, logger),
 
 		source: src,
 		opts:   opts,
@@ -104,6 +107,18 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("search", searchName).Str("columns", table.Columns.String()).Msg("columns for table")
+			client.Tables = append(client.Tables, table)
+		}
+	}
+
+	// Content types rollup tables prepare
+	for ctName, ctSpec := range spec.ContentTypes {
+		table, err := client.contentTypes.GetDestTable(ctName, ctSpec)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get table from content type \"%s\": %w", ctName, err)
+		}
+		if table != nil {
+			logger.Debug().Str("table", table.Name).Str("contenttype", ctName).Str("columns", table.Columns.String()).Msg("columns for table")
 			client.Tables = append(client.Tables, table)
 		}
 	}

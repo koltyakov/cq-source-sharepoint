@@ -4,6 +4,8 @@ spec:
   registry: "local"
   path: "../bin/cq-source-sharepoint"
   version: "development"
+  # path: "koltyakov/sharepoint"
+  # version: "v1.5.0"
   destinations: ["${CQ_DESTINATION}"]
   spec:
     auth:
@@ -20,10 +22,17 @@ spec:
       strategy: "ondemand"
       creds:
         siteUrl: ${SP_SITE_URL}
+    search:
+      profiles:
+        query_text: "*"
+        source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
+        trim_duplicates: false
+        select_properties:
+          - Title -> name
     lists:
       _catalogs/users:
         select:
-          - Title
+          - Title->name
           - UserName
           - FirstName
           - LastName
@@ -65,6 +74,17 @@ spec:
           - OrderDate
           - Total
         alias: "order"
+    content_types:
+      Task:
+        select:
+          - Title
+          - AssignedTo/Title
+          - TaskDueDate
+          - TaskStatus
+          - PercentComplete
+        expand:
+          - AssignedTo
+        alias: "task"
     mmd:
       8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
         alias: "department"

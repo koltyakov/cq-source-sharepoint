@@ -7,6 +7,7 @@ import (
 	"github.com/cloudquery/plugin-sdk/specs"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
+	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
 	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
@@ -30,6 +31,9 @@ type Spec struct {
 
 	// Search query results
 	Search map[string]search.Spec `json:"search"`
+
+	// Content types based rollup
+	ContentTypes map[string]ct.Spec `json:"content_types"`
 }
 
 // SetDefaults sets default values for top level spec
@@ -48,6 +52,21 @@ func (s *Spec) SetDefaults() {
 	for searchName, searchSpec := range s.Search {
 		searchSpec.SetDefault()
 		s.Search[searchName] = searchSpec
+	}
+
+	// Set default values for MMD specs
+	for terSetID, mmdSpec := range s.MMD {
+		mmdSpec.SetDefault()
+		s.MMD[terSetID] = mmdSpec
+	}
+
+	// Set default values for User Profiles spec
+	s.Profiles.SetDefault()
+
+	// Set default values for Content Types rollup specs
+	for ctName, ctSpec := range s.ContentTypes {
+		ctSpec.SetDefault()
+		s.ContentTypes[ctName] = ctSpec
 	}
 }
 
@@ -116,10 +135,23 @@ func (s *Spec) Validate() error {
 		}
 	}
 
+	// Content types based rollup spec validations
+	for ctName, ctSpec := range s.ContentTypes {
+		// Unique alias name
+		alias := strings.ToLower("rollup_" + util.NormalizeEntityName(ctName))
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for content type \"%s\" configuration", alias, ctName)
+		}
+		aliases[alias] = true
+		if err := ctSpec.Validate(); err != nil {
+			return fmt.Errorf("content type rollup \"%s\" configuration is invalid: %s", ctName, err)
+		}
+	}
+
 	// App only auth is not supported with search driven sources
 	// ToDo: check other not user context auth strategies
 	if s.Auth.Strategy == "addin" && (s.Profiles.Enabled || len(s.Search) > 0) {
-		return fmt.Errorf("addin auth strategy is not supported with search API, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
+		return fmt.Errorf("this auth strategy is not supported with search API, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
 	}
 
 	return nil
