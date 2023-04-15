@@ -1,4 +1,4 @@
-package lists
+package ct
 
 import (
 	"fmt"
@@ -19,15 +19,6 @@ type Spec struct {
 	// Optional, and in most of the cases we recommend to avoid it and
 	// prefer to map nested entities to the separate tables
 	Expand []string `json:"expand"`
-	// REST `$filter` OData modificator, a filter string
-	// Don't use filters for large entities which potentially can return more than 5000 in a view
-	// such filtering will throttle no matter top limit is set
-	Filter string `json:"filter"`
-	// REST `$top` OData modificator, a number of items to fetch per page
-	// If not provided, 5000 will be used
-	// In most of the cases you don't need to change this value
-	// It also can't be larger than 5000 anyways
-	Top int `json:"top"`
 	// Optional, an alias for the table name
 	// Don't map different lists to the same table - such scenario is not supported
 	Alias string `json:"alias"`
@@ -43,8 +34,9 @@ func (s *Spec) SetDefault() {
 	}
 
 	exclude := []string{}
-	prepProps := []string{"ID"}
+	prepProps := []string{"UniqueId", "ParentList/ParentWebUrl", "ParentList/Id", "ID"}
 	apndProps := []string{"Created", "AuthorId", "Modified", "EditorId"}
+	defaultExpand := []string{"ParentList"}
 
 	// Extract arrow syntax fields mapping
 	s.fieldsMapping = util.GetFieldsMapping(s.Select)
@@ -52,6 +44,9 @@ func (s *Spec) SetDefault() {
 		f, _ := util.GetFieldMapping(field)
 		s.Select[i] = f
 	}
+
+	s.fieldsMapping["ParentList/ParentWebUrl"] = "WebUrl"
+	s.fieldsMapping["ParentList/Id"] = "ListId"
 
 	s.Select = funk.FilterString(s.Select, func(field string) bool {
 		// Disable wildcard or nested wildcard selectors
@@ -61,6 +56,7 @@ func (s *Spec) SetDefault() {
 		return !funk.ContainsString(util.ConcatSlice(exclude, util.ConcatSlice(prepProps, apndProps)), field)
 	})
 
+	s.Expand = util.ConcatSlice(s.Expand, defaultExpand)
 	s.Select = util.ConcatSlice(prepProps, util.ConcatSlice(s.Select, apndProps))
 }
 
@@ -84,10 +80,7 @@ func (s *Spec) Validate() error {
 	return nil
 }
 
-// GetAlias returns an alias for the list
-func (s *Spec) GetAlias(listURI string) string {
-	if s.Alias == "" {
-		return strings.ToLower(listURI)
-	}
-	return strings.ToLower(s.Alias)
+// GetAlias returns an alias for a content type rollup
+func (s *Spec) GetAlias(ctName string) string {
+	return strings.ToLower("rollup_" + util.NormalizeEntityName(ctName))
 }

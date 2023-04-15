@@ -15,6 +15,9 @@ func GetRespValByProp(val map[string]any, propPath string) any {
 		parts := strings.Split(propPath, "/")
 		for _, part := range parts {
 			v := val[part]
+			if v == nil {
+				return nil
+			}
 			if reflect.TypeOf(v).Kind() != reflect.Map {
 				return v
 			}

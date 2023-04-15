@@ -3,6 +3,7 @@ package lists
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -71,42 +72,50 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 
 	// ToDo: Rearchitect table construction logic
 	for _, prop := range spec.Select {
-		var field *api.FieldInfo
-		for _, fieldResp := range fieldsData {
-			fieldData := fieldResp.Data()
-			propName := fieldData.EntityPropertyName
-			lookups := []string{"Lookup", "User", "LookupMulti", "UserMulti"}
-			if funk.Contains(lookups, fieldData.TypeAsString) {
-				propName += "Id"
-			}
-			if propName == prop {
-				field = fieldData
-				break
-			}
-		}
-
-		// Props is not presented in list's fields
-		if field == nil {
-			c := schema.Column{
-				Name:        util.NormalizeEntityName(prop),
-				Description: prop,
-				Type:        schema.TypeString,
-			}
-
-			table.Columns = append(table.Columns, c)
-			continue
-		}
-
-		col := l.columnFromField(field, table.Name)
-		col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
-		col.Description = prop
-
+		col := l.getDestCol(prop, tableName, spec, fieldsData)
 		table.Columns = append(table.Columns, col)
 	}
 
 	l.TablesMap[table.Name] = *model
 
 	return table, nil
+}
+
+func (l *Lists) getDestCol(prop string, tableName string, spec Spec, fieldsData []api.FieldResp) schema.Column {
+	var field *api.FieldInfo
+	for _, fieldResp := range fieldsData {
+		fieldData := fieldResp.Data()
+		propName := fieldData.EntityPropertyName
+		lookups := []string{"Lookup", "User", "LookupMulti", "UserMulti"}
+		if funk.Contains(lookups, fieldData.TypeAsString) {
+			propName += "Id"
+		}
+		if propName == prop {
+			field = fieldData
+			break
+		}
+	}
+
+	fieldAlias := prop
+	if a, ok := spec.fieldsMapping[prop]; ok {
+		fieldAlias = a
+	}
+
+	// Props is not presented in list's fields
+	if field == nil {
+		return schema.Column{
+			Name:        util.NormalizeEntityName(fieldAlias),
+			Description: prop,
+			Type:        typeFromPropName(prop),
+		}
+	}
+
+	field.InternalName = fieldAlias
+	col := l.columnFromField(field, tableName)
+	col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
+	col.Description = prop
+
+	return col
 }
 
 type listInfo struct {
@@ -173,4 +182,11 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 	c.Name = util.NormalizeEntityName(field.InternalName)
 
 	return c
+}
+
+func typeFromPropName(prop string) schema.ValueType {
+	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
+		return schema.TypeInt
+	}
+	return schema.TypeString
 }

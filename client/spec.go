@@ -2,11 +2,10 @@ package client
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cloudquery/plugin-sdk/specs"
-	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
+	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
 	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
@@ -30,6 +29,9 @@ type Spec struct {
 
 	// Search query results
 	Search map[string]search.Spec `json:"search"`
+
+	// Content types based rollup
+	ContentTypes map[string]ct.Spec `json:"content_types"`
 }
 
 // SetDefaults sets default values for top level spec
@@ -49,6 +51,21 @@ func (s *Spec) SetDefaults() {
 		searchSpec.SetDefault()
 		s.Search[searchName] = searchSpec
 	}
+
+	// Set default values for MMD specs
+	for terSetID, mmdSpec := range s.MMD {
+		mmdSpec.SetDefault()
+		s.MMD[terSetID] = mmdSpec
+	}
+
+	// Set default values for User Profiles spec
+	s.Profiles.SetDefault()
+
+	// Set default values for Content Types rollup specs
+	for ctName, ctSpec := range s.ContentTypes {
+		ctSpec.SetDefault()
+		s.ContentTypes[ctName] = ctSpec
+	}
 }
 
 // Validate validates SharePoint source spec validity
@@ -58,43 +75,113 @@ func (s *Spec) Validate() error {
 		return err
 	}
 
-	// All lists should have unique aliases
+	// App only auth is not supported with search driven sources
+	// ToDo: check other not user context auth strategies
+	if s.Auth.Strategy == "addin" && (s.Profiles.Enabled || len(s.Search) > 0) {
+		return fmt.Errorf("this auth strategy is not supported with search API, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
+	}
+
+	if err := s.validateAliases(); err != nil {
+		return err
+	}
+
+	if err := s.validateLists(); err != nil {
+		return err
+	}
+
+	if err := s.validateMMD(); err != nil {
+		return err
+	}
+
+	if err := s.validateProfiles(); err != nil {
+		return err
+	}
+
+	if err := s.validateSearch(); err != nil {
+		return err
+	}
+
+	if err := s.validateContentTypes(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Spec) validateAliases() error {
 	aliases := make(map[string]bool)
+
 	for listURI, listSpec := range s.Lists {
-		alias := strings.ToLower(listSpec.Alias)
-		if alias == "" {
-			alias = strings.ToLower(listURI)
-		}
+		alias := listSpec.GetAlias(listURI)
 		if _, ok := aliases[alias]; ok {
 			return fmt.Errorf("duplicate alias \"%s\" for list \"%s\" configuration", alias, listURI)
 		}
 		aliases[alias] = true
 	}
 
-	// All term sets should have unique aliases
 	for terSetID, mmdSpec := range s.MMD {
-		alias := strings.ToLower("mmd_" + mmdSpec.Alias)
-		if mmdSpec.Alias == "" {
-			alias = strings.ToLower("mmd_" + strings.ReplaceAll(terSetID, "-", ""))
-		}
+		alias := mmdSpec.GetAlias(terSetID)
 		if _, ok := aliases[alias]; ok {
 			return fmt.Errorf("duplicate alias \"%s\" for term set \"%s\" configuration", alias, terSetID)
 		}
 		aliases[alias] = true
 	}
 
-	// User profiles should have unique alias
 	if s.Profiles.Enabled {
-		alias := strings.ToLower("ups_profile")
-		if s.Profiles.Alias != "" {
-			alias = strings.ToLower("ups_" + s.Profiles.Alias)
-		}
+		alias := s.Profiles.GetAlias()
 		if _, ok := aliases[alias]; ok {
 			return fmt.Errorf("duplicate alias \"%s\" for user profiles configuration", alias)
 		}
 		aliases[alias] = true
 	}
 
+	for searchName, searchSpec := range s.Search {
+		alias := searchSpec.GetAlias(searchName)
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for search \"%s\" configuration", alias, searchName)
+		}
+		aliases[alias] = true
+	}
+
+	for ctName, ctSpec := range s.ContentTypes {
+		alias := ctSpec.GetAlias(ctName)
+		if _, ok := aliases[alias]; ok {
+			return fmt.Errorf("duplicate alias \"%s\" for content type \"%s\" configuration", alias, ctName)
+		}
+		aliases[alias] = true
+	}
+
+	return nil
+}
+
+func (s *Spec) validateLists() error {
+	for listURI, listSpec := range s.Lists {
+		if err := listSpec.Validate(); err != nil {
+			return fmt.Errorf("list \"%s\" configuration is invalid: %s", listURI, err)
+		}
+	}
+	return nil
+}
+
+func (s *Spec) validateMMD() error {
+	for terSetID, mmdSpec := range s.MMD {
+		if err := mmdSpec.Validate(); err != nil {
+			return fmt.Errorf("term set \"%s\" configuration is invalid: %s", terSetID, err)
+		}
+	}
+	return nil
+}
+
+func (s *Spec) validateProfiles() error {
+	if s.Profiles.Enabled {
+		if err := s.Profiles.Validate(); err != nil {
+			return fmt.Errorf("user profiles configuration is invalid: %s", err)
+		}
+	}
+	return nil
+}
+
+func (s *Spec) validateSearch() error {
 	// Search spec validations
 	for searchName, searchSpec := range s.Search {
 		// Query text is required
@@ -102,20 +189,20 @@ func (s *Spec) Validate() error {
 			return fmt.Errorf("queryText is required for search \"%s\" configuration", searchName)
 		}
 
-		// Unique alias name
-		alias := strings.ToLower("search_" + util.NormalizeEntityName(searchName))
-		if _, ok := aliases[alias]; ok {
-			return fmt.Errorf("duplicate alias \"%s\" for search \"%s\" configuration", alias, searchName)
+		// Validate search spec
+		if err := searchSpec.Validate(); err != nil {
+			return fmt.Errorf("search \"%s\" configuration is invalid: %s", searchName, err)
 		}
-		aliases[alias] = true
 	}
+	return nil
+}
 
-	// App only auth is not supported with search driven sources
-	// ToDo: check other not user context auth strategies
-	if s.Auth.Strategy == "addin" && (s.Profiles.Enabled || len(s.Search) > 0) {
-		return fmt.Errorf("addin auth strategy is not supported with search API, see more https://learn.microsoft.com/en-us/sharepoint/dev/solution-guidance/search-api-usage-sharepoint-add-in")
+func (s *Spec) validateContentTypes() error {
+	for ctName, ctSpec := range s.ContentTypes {
+		if err := ctSpec.Validate(); err != nil {
+			return fmt.Errorf("content type rollup \"%s\" configuration is invalid: %s", ctName, err)
+		}
 	}
-
 	return nil
 }
 

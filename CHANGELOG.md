@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.6.0 (2023-03-26)
+
+- Content Types based rollup
+
+## 1.5.0 (2023-03-23)
+
+- Fields mapping support
+
+## 1.4.1 (2023-03-19)
+
+### Fixes
+
+- On-Demand auth failing open Chrome window
+
 ## 1.4.0 (2023-03-01)
 
 ### Features

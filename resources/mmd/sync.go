@@ -16,7 +16,6 @@ import (
 
 func (m *MMD) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
 	opts := m.TablesMap[table.Name]
-	logger := m.logger.With().Str("table", table.Name).Logger()
 
 	taxonomy := m.sp.Taxonomy()
 	terms, err := taxonomy.Stores().Default().Sets().GetByID(opts.ID).GetAllTerms()
@@ -28,7 +27,6 @@ func (m *MMD) Sync(ctx context.Context, metrics *source.TableClientMetrics, res 
 	for _, itemMap := range terms {
 		ks := funk.Keys(itemMap).([]string)
 		sort.Strings(ks)
-		logger.Debug().Strs("keys", ks).Msg("item keys")
 
 		colVals := make([]any, len(table.Columns))
 

@@ -58,7 +58,7 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 
 		if !util.Contains(ignoreFields, prop) {
 			columns = append(columns, schema.Column{
-				Name:        util.NormalizeEntityNameSnake(prop),
+				Name:        util.NormalizeEntityNameSnake(getFieldAlias(prop, spec.fieldsMapping)),
 				Type:        fieldType,
 				Description: prop,
 			})
@@ -69,7 +69,7 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 		Name: "sharepoint_search_" + tableName,
 		Columns: append([]schema.Column{
 			{Name: "id", Type: schema.TypeInt, Description: "DocId", CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
-			{Name: "title", Type: schema.TypeString, Description: "Title"},
+			{Name: util.NormalizeEntityNameSnake(getFieldAlias("Title", spec.fieldsMapping)), Type: schema.TypeString, Description: "Title"},
 		}, columns...),
 	}
 
@@ -87,4 +87,11 @@ func (s *Search) schemaBySpec(spec Spec) ([]*api.TypedKeyValue, error) {
 	}
 
 	return res.Data().Properties, nil
+}
+
+func getFieldAlias(field string, mapping map[string]string) string {
+	if a, ok := mapping[field]; ok {
+		return a
+	}
+	return field
 }

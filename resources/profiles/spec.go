@@ -9,4 +9,20 @@ type Spec struct {
 }
 
 // SetDefault sets default values for list spec
-// func (s *Spec) SetDefault() {}
+func (*Spec) SetDefault() {
+	// Default values
+}
+
+// Validate validates user profiles spec validity
+func (s *Spec) Validate() error {
+	// Nothing to validate
+	return nil
+}
+
+// GetAlias returns the alias for the term set
+func (s *Spec) GetAlias() string {
+	if s.Alias == "" {
+		return "ups_profile"
+	}
+	return "ups_" + s.Alias
+}

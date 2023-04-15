@@ -12,21 +12,15 @@
 ## Features
 
 - Lists and Document Libraries data fetching
+- Content Types based rollup
 - User Information List data fetching
+- Search Query data source
+- User Profiles data source
 - SharePoint Online support
 - SharePoint On-Premise support
 - Fast and potentially blazin fast with [spsync](https://github.com/koltyakov/spsync)
 
 ![demo](./assets/demo.gif)
-
-## Roadmap
-
-- [x] Lists and Document Libraries data
-- [x] [Managed Metadata terms](https://github.com/koltyakov/cq-source-sharepoint/issues/12)
-- [x] [User Profile Service data](https://github.com/koltyakov/cq-source-sharepoint/issues/13)
-- [x] [Search queries data](https://github.com/koltyakov/cq-source-sharepoint/issues/14)
-- [ ] Content types based rollup
-- [ ] Governance scenarios data
 
 Vote for a feature you need or create a PR.
 
@@ -38,7 +32,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.4.0" # provide the latest stable version
+  version: "v1.6.2" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   spec:
     # Spec is mandatory
@@ -68,6 +62,18 @@ We recomment Azure AD (`azurecert`) or Add-In (`addin`) auth for production scen
 
 SharePoint On-Premise auth is also supported, based on your farm configuration you can use: `ntlm`, `adfs` to name a few.
 
+Need to hands on quickly without configuring Azure Apps or Addins or asking an admin to turn on app password? Try On-Demand auth:
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  auth:
+    strategy: "ondemand"
+    creds:
+      siteUrl: "https://contoso.sharepoint.com/sites/cloudquery"
+```
+
 ### Entities configuration
 
 A single source `yml` configuration assumes fetching data from a single SharePoint site. If you need to fetch data from multiple sites, you can create multiple source configurations. Alternatevely, search based data fetching can be used for rollup scenarios grabbing data from as many sites as needed.
@@ -88,6 +94,8 @@ spec:
       select:
         - Title
         - Author/Title
+        # Fields mapping via `->` arrow alias, when a specific field name is considered
+        - EditorId -> editor
       # REST `$expand` OData modificator, fields entity properties array
       # When expanding an entity use selection of a nested entity property(s)
       # Optional, and in most of the cases we recommend to avoid it and
@@ -105,14 +113,36 @@ spec:
     Lists/AnotherList:
       select:
         - Title
-  # A map of MMD term sets IDs (GUIDs)
-  # If no term sets provided, no terms will be fetched
-  mmd:
-    # Term set ID
-    8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+  # content_types: # see more below
+  # mmd: # see more below
+  # search: # see more below
+  # profiles: # see more below
+```
+
+#### Content Types based rollup
+
+Content Types based rollup allows to fetch data from multiple lists or document libraries based on the Content Type configuration.
+
+All items based on the parent content type are fetched from all lists and subwebs below the context site URL.
+
+```yaml
+# sharepoint.yml
+# ...
+spec:
+  # A map of Content Types with the rollup configurations
+  content_types:
+    # Base Content Type name or ID (e.g. "0x0101009D1CB255D" must be in quotes)
+    Task:
+      # REST `$select` OData modificator, fields entity properties array
+      select:
+        - Title
+        - AssignedTo/Title
+      # REST `$expand` OData modificator, fields entity properties array
+      expand:
+        - AssignedTo
       # Optional, an alias for the table name
-      # the name of the alias is prefixed with `mmd_`
-      alias: "department"
+      # the name of the alias is prefixed with `rollup_`
+      alias: "task"
 ```
 
 #### User Information List
@@ -167,8 +197,12 @@ To configure managed metadata fetching, you need to provide a term set ID (GUID)
 # sharepoint.yml
 # ...
 spec:
+  # A map of MMD term sets IDs (GUIDs)
   mmd:
+    # Term set ID
     8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+      # Optional, an alias for the table name
+      # the name of the alias is prefixed with `mmd_`
       alias: "department"
 ```
 
@@ -240,18 +274,17 @@ Follow [quickstart instructions](https://www.cloudquery.io/docs/quickstart/).
 
 ### Source sample data
 
-Provision and seed some sample data. [See more](./cmd/demo/README.md). Which satisfy the schema below.
+Provision and seed some sample data. [See more](./cmd/seed/README.md). Which satisfy the schema below.
 
 ### Auth configuration
 
 ```bash
 # .env or env vars export
 # See more details in https://go.spflow.com/auth/strategies
-SP_AUTH_STRATEGY=addin
 SP_SITE_URL=https://contoso.sharepoint.com/sites/site
-SP_CLIENT_ID=97e6ed51-777c-42da-8f07-b035a5ac057b
-SP_CLIENT_SECRET="1wlWvB...AqSP8="
 ```
+
+or use "ondeman" auth.
 
 ### Source configuration
 
@@ -262,15 +295,14 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.4.0" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.6.2" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   spec:
     auth:
-      strategy: "${SP_AUTH_STRATEGY}"
+      strategy: "ondemand"
       creds:
         siteUrl: ${SP_SITE_URL}
-        clientId: ${SP_CLIENT_ID}
-        clientSecret: ${SP_CLIENT_SECRET}
+        # align creds with the used strategy
     lists:
       _catalogs/users:
         select:
@@ -326,7 +358,7 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v1.4.0"
+  version: "v1.3.5"
   spec:
     connection_string: ./db.sql
 ```
@@ -344,9 +376,9 @@ You should see the following output:
 Loading spec(s) from sharepoint_reg.yml, sqlite.yml
 Downloading https://github.com/koltyakov/cq-source-sharepoint/releases/download/v1.0.0/cq-source-sharepoint_darwin_arm64.zip
 Downloading 100% |█████████████████████████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
-Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.4.0)]
+Starting migration with 5 tables for: sharepoint (v1.0.0) -> [sqlite (v1.6.2)]
 Migration completed successfully.
-Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.4.0)]
+Starting sync for: sharepoint (v1.0.0) -> [sqlite (v1.6.2)]
 Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
 ```
 

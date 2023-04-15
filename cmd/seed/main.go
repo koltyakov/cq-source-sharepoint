@@ -3,17 +3,26 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/koltyakov/gosip"
+	"github.com/koltyakov/gosip-sandbox/strategies/ondemand"
 	"github.com/koltyakov/gosip/api"
-	"github.com/koltyakov/gosip/auth"
+	// "github.com/koltyakov/gosip/auth"
 )
 
 func main() {
-	authCnfg, err := auth.NewAuthFromFile("./config/private.json")
-	if err != nil {
-		log.Fatalf("failed to create auth config: %s", err)
+	authCnfg := &ondemand.AuthCnfg{
+		SiteURL: os.Getenv("SP_SITE_URL"),
 	}
+
+	// `ondemand` won't work for On-Premise with NTLM auth
+	// see more https://go.spflow.com/auth/strategies/ntlm
+	// Uncomment the the below lines to use NTLM auth
+	// authCnfg, err := auth.NewAuthFromFile("./config/private.json")
+	// if err != nil {
+	// 	log.Fatalf("failed to create auth config: %s", err)
+	// }
 
 	client := &gosip.SPClient{AuthCnfg: authCnfg}
 	sp := api.NewSP(client)
