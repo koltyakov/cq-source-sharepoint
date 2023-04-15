@@ -57,13 +57,52 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		opts:   opts,
 	}
 
-	tableCnt := len(spec.Lists) + len(spec.MMD)
+	tableCnt := len(spec.Lists) + len(spec.MMD) + len(spec.Search) + len(spec.ContentTypes)
 	if spec.Profiles.Enabled {
 		tableCnt++
 	}
 	client.Tables = make(schema.Tables, 0, tableCnt)
 
 	// Managed metadata tables prepare
+	mmdTables, err := prepareMMDTables(client, spec, logger)
+	if err != nil {
+		return nil, err
+	}
+	client.Tables = append(client.Tables, mmdTables...)
+
+	// Lists tables prepare
+	listTables, err := prepareListTables(client, spec, logger)
+	if err != nil {
+		return nil, err
+	}
+	client.Tables = append(client.Tables, listTables...)
+
+	// User profiles tables prepare
+	profileTables, err := prepareProfileTables(client, spec, logger)
+	if err != nil {
+		return nil, err
+	}
+	client.Tables = append(client.Tables, profileTables...)
+
+	// Search tables prepare
+	searchTables, err := prepareSearchTables(client, spec, logger)
+	if err != nil {
+		return nil, err
+	}
+	client.Tables = append(client.Tables, searchTables...)
+
+	// Content types rollup tables prepare
+	ctTables, err := prepareContentTypeTables(client, spec, logger)
+	if err != nil {
+		return nil, err
+	}
+	client.Tables = append(client.Tables, ctTables...)
+
+	return client, nil
+}
+
+func prepareMMDTables(client *Client, spec *Spec, logger zerolog.Logger) ([]*schema.Table, error) {
+	tables := make([]*schema.Table, 0, len(spec.MMD))
 	for termSetID, mmdSpec := range spec.MMD {
 		table, err := client.mmd.GetDestTable(termSetID, mmdSpec)
 		if err != nil {
@@ -71,11 +110,14 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("termset", termSetID).Str("columns", table.Columns.String()).Msg("columns for table")
-			client.Tables = append(client.Tables, table)
+			tables = append(tables, table)
 		}
 	}
+	return tables, nil
+}
 
-	// Lists tables prepare
+func prepareListTables(client *Client, spec *Spec, logger zerolog.Logger) ([]*schema.Table, error) {
+	tables := make([]*schema.Table, 0, len(spec.Lists))
 	for listURI, listSpec := range spec.Lists {
 		table, err := client.lists.GetDestTable(listURI, listSpec)
 		if err != nil {
@@ -83,11 +125,13 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("list", listURI).Str("columns", table.Columns.String()).Msg("columns for table")
-			client.Tables = append(client.Tables, table)
+			tables = append(tables, table)
 		}
 	}
+	return tables, nil
+}
 
-	// User profiles tables prepare
+func prepareProfileTables(client *Client, spec *Spec, logger zerolog.Logger) ([]*schema.Table, error) {
 	if spec.Profiles.Enabled {
 		table, err := client.profiles.GetDestTable(spec.Profiles)
 		if err != nil {
@@ -95,11 +139,14 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("columns", table.Columns.String()).Msg("columns for table")
-			client.Tables = append(client.Tables, table)
+			return []*schema.Table{table}, nil
 		}
 	}
+	return []*schema.Table{}, nil
+}
 
-	// Search tables prepare
+func prepareSearchTables(client *Client, spec *Spec, logger zerolog.Logger) ([]*schema.Table, error) {
+	tables := make([]*schema.Table, 0, len(spec.Search))
 	for searchName, searchSpec := range spec.Search {
 		table, err := client.search.GetDestTable(searchName, searchSpec)
 		if err != nil {
@@ -107,11 +154,14 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("search", searchName).Str("columns", table.Columns.String()).Msg("columns for table")
-			client.Tables = append(client.Tables, table)
+			tables = append(tables, table)
 		}
 	}
+	return tables, nil
+}
 
-	// Content types rollup tables prepare
+func prepareContentTypeTables(client *Client, spec *Spec, logger zerolog.Logger) ([]*schema.Table, error) {
+	tables := make([]*schema.Table, 0, len(spec.ContentTypes))
 	for ctName, ctSpec := range spec.ContentTypes {
 		table, err := client.contentTypes.GetDestTable(ctName, ctSpec)
 		if err != nil {
@@ -119,9 +169,8 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		}
 		if table != nil {
 			logger.Debug().Str("table", table.Name).Str("contenttype", ctName).Str("columns", table.Columns.String()).Msg("columns for table")
-			client.Tables = append(client.Tables, table)
+			tables = append(tables, table)
 		}
 	}
-
-	return client, nil
+	return tables, nil
 }

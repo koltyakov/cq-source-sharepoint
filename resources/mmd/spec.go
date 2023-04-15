@@ -1,5 +1,7 @@
 package mmd
 
+import "strings"
+
 // Spec is the configuration for MMD term set source
 type Spec struct {
 	// Optional, an alias for the table name
@@ -8,4 +10,20 @@ type Spec struct {
 }
 
 // SetDefault sets default values for MMD spec
-func (*Spec) SetDefault() {}
+func (*Spec) SetDefault() {
+	// Default values
+}
+
+// Validate validates MMD spec validity
+func (s *Spec) Validate() error {
+	// Nothing to validate
+	return nil
+}
+
+// GetAlias returns the alias for the term set
+func (s *Spec) GetAlias(terSetID string) string {
+	if s.Alias == "" {
+		return strings.ToLower("mmd_" + strings.ReplaceAll(terSetID, "-", ""))
+	}
+	return strings.ToLower("mmd_" + s.Alias)
+}

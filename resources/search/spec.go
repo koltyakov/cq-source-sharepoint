@@ -2,6 +2,7 @@ package search
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/thoas/go-funk"
@@ -61,4 +62,9 @@ func (s *Spec) Validate() error {
 	}
 
 	return nil
+}
+
+// GetAlias returns an alias for the list
+func (s *Spec) GetAlias(searchName string) string {
+	return strings.ToLower("search_" + util.NormalizeEntityName(searchName))
 }

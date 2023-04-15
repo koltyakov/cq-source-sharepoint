@@ -10,6 +10,7 @@ import (
 	"github.com/cloudquery/plugin-sdk/plugins/source"
 	"github.com/cloudquery/plugin-sdk/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
+	"github.com/koltyakov/gosip/api"
 	"github.com/thoas/go-funk"
 )
 
@@ -45,8 +46,12 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 	return nil
 }
 
+func (c *ContentTypesRollup) getWeb(webURL string) *api.Web {
+	return c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
+}
+
 func (c *ContentTypesRollup) getWebs(webURL string) ([]string, error) {
-	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
+	web := c.getWeb(webURL)
 
 	resp, err := web.Webs().Select("Url,Webs/Url").Expand("Webs").Top(5000).Get()
 	if err != nil {
@@ -80,7 +85,7 @@ func (c *ContentTypesRollup) getWebs(webURL string) ([]string, error) {
 }
 
 func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, error) {
-	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
+	web := c.getWeb(webURL)
 
 	resp, err := web.Lists().
 		Select("Id,ContentTypes/StringId").
@@ -117,7 +122,7 @@ func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, err
 func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
 	opts := c.TablesMap[table.Name]
 
-	web := c.sp.Web().FromURL(fmt.Sprintf("%s/_api/Web", webURL))
+	web := c.getWeb(webURL)
 	list := web.Lists().GetByID(listID)
 
 	// Content type is not applied as filter in query to support lists of any size

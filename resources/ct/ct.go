@@ -63,51 +63,53 @@ func (c *ContentTypesRollup) GetDestTable(ctID string, spec Spec) (*schema.Table
 
 	// ToDo: Rearchitect table construction logic
 	for _, prop := range spec.Select {
-		var field *api.FieldInfo
-		for _, fieldData := range ctInfo.Fields {
-			propName := fieldData.EntityPropertyName
-			lookups := []string{"Lookup", "User", "LookupMulti", "UserMulti"}
-			if funk.Contains(lookups, fieldData.TypeAsString) {
-				propName += "Id"
-			}
-			if propName == prop {
-				field = fieldData
-				break
-			}
-		}
-
-		fieldAlias := prop
-		if a, ok := spec.fieldsMapping[prop]; ok {
-			fieldAlias = a
-		}
-
-		// Props is not presented in list's fields
-		if field == nil {
-			c := schema.Column{
-				Name:        util.NormalizeEntityName(fieldAlias),
-				Description: prop,
-				Type:        c.typeFromPropName(prop),
-			}
-
-			table.Columns = append(table.Columns, c)
-			continue
-		}
-
-		field.InternalName = fieldAlias
-		col := c.columnFromField(field, table.Name)
-		col.Description = prop
-
-		if prop == "UniqueId" {
-			col.CreationOptions.PrimaryKey = true
-			col.Type = schema.TypeUUID
-		}
-
+		col := c.getDestCol(prop, tableName, ctInfo, spec)
 		table.Columns = append(table.Columns, col)
 	}
 
 	c.TablesMap[table.Name] = *model
 
 	return table, nil
+}
+
+func (c *ContentTypesRollup) getDestCol(prop string, tableName string, ctInfo *contentTypeInfo, spec Spec) schema.Column {
+	var field *api.FieldInfo
+	for _, fieldData := range ctInfo.Fields {
+		propName := fieldData.EntityPropertyName
+		lookups := []string{"Lookup", "User", "LookupMulti", "UserMulti"}
+		if funk.Contains(lookups, fieldData.TypeAsString) {
+			propName += "Id"
+		}
+		if propName == prop {
+			field = fieldData
+			break
+		}
+	}
+
+	fieldAlias := prop
+	if a, ok := spec.fieldsMapping[prop]; ok {
+		fieldAlias = a
+	}
+
+	// Props is not presented in list's fields
+	if field == nil {
+		return schema.Column{
+			Name:        util.NormalizeEntityName(fieldAlias),
+			Description: prop,
+			Type:        c.typeFromPropName(prop),
+		}
+	}
+
+	field.InternalName = fieldAlias
+	col := c.columnFromField(field, tableName)
+	col.Description = prop
+
+	if prop == "UniqueId" {
+		col.CreationOptions.PrimaryKey = true
+		col.Type = schema.TypeUUID
+	}
+
+	return col
 }
 
 type contentTypeInfo struct {

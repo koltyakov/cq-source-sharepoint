@@ -83,3 +83,11 @@ func (s *Spec) Validate() error {
 
 	return nil
 }
+
+// GetAlias returns an alias for the list
+func (s *Spec) GetAlias(listURI string) string {
+	if s.Alias == "" {
+		return strings.ToLower(listURI)
+	}
+	return strings.ToLower(s.Alias)
+}
