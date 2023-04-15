@@ -32,11 +32,7 @@ func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *
 		return err
 	}
 
-	if err := c.syncContentTypes(ctx, metrics, res); err != nil {
-		return err
-	}
-
-	return nil
+	return c.syncContentTypes(ctx, metrics, res)
 }
 
 // Lists sync

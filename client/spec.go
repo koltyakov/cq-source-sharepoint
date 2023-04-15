@@ -101,11 +101,7 @@ func (s *Spec) Validate() error {
 		return err
 	}
 
-	if err := s.validateContentTypes(); err != nil {
-		return err
-	}
-
-	return nil
+	return s.validateContentTypes()
 }
 
 func (s *Spec) validateAliases() error {

@@ -81,6 +81,6 @@ func (s *Spec) Validate() error {
 }
 
 // GetAlias returns an alias for a content type rollup
-func (s *Spec) GetAlias(ctName string) string {
+func (*Spec) GetAlias(ctName string) string {
 	return strings.ToLower("rollup_" + util.NormalizeEntityName(ctName))
 }
