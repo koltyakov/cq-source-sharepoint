@@ -14,7 +14,7 @@ func (*Spec) SetDefault() {
 }
 
 // Validate validates user profiles spec validity
-func (s *Spec) Validate() error {
+func (*Spec) Validate() error {
 	// Nothing to validate
 	return nil
 }

@@ -65,6 +65,6 @@ func (s *Spec) Validate() error {
 }
 
 // GetAlias returns an alias for the list
-func (s *Spec) GetAlias(searchName string) string {
+func (*Spec) GetAlias(searchName string) string {
 	return strings.ToLower("search_" + util.NormalizeEntityName(searchName))
 }
