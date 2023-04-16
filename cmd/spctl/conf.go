@@ -9,7 +9,7 @@ type Strategy struct {
 
 const (
 	SPO    string = "spo"
-	OnPrem        = "onprem"
+	OnPrem string = "onprem"
 )
 
 var allStrats = []string{
@@ -61,7 +61,7 @@ var stratsConf = map[string]Strategy{
 		Desc:  "ADFS [SPO, On-Premises]",
 		Docs:  "https://go.spflow.com/auth/strategies/adfs",
 		Envs:  []string{SPO, OnPrem},
-		Creds: credsResolver.user,
+		Creds: credsResolver.adfs,
 	},
 	"fba": {
 		Desc:  "FBA (Legacy) [On-Premises]",

@@ -14,7 +14,7 @@ var pluginVersion = "v1.6.2"
 func main() {
 	siteURL := getSiteURL()
 	strategy := getStrategy(siteURL)
-	creds, err := getCreds(siteURL, strategy)
+	creds, err := getCreds(strategy)
 	if err != nil {
 		fmt.Printf("\033[31mInvalid strategy: %s\033[0m\n", err)
 		return
@@ -67,7 +67,7 @@ func getSiteURL() string {
 	}
 
 	var siteURL string
-	survey.AskOne(siteURLQ, &siteURL, survey.WithValidator(shouldBeURL))
+	_ = survey.AskOne(siteURLQ, &siteURL, survey.WithValidator(shouldBeURL))
 	return siteURL
 }
 
@@ -90,12 +90,12 @@ func getStrategy(siteURL string) string {
 	}
 
 	var strategy string
-	survey.AskOne(strategyQ, &strategy)
+	_ = survey.AskOne(strategyQ, &strategy)
 
 	return strategy
 }
 
-func getCreds(siteURL, strategy string) ([][]string, error) {
+func getCreds(strategy string) ([][]string, error) {
 	s, ok := stratsConf[strategy]
 	if !ok {
 		return nil, fmt.Errorf("can't resolve strategy %s", strategy)
@@ -139,7 +139,7 @@ func getSourceName() string {
 		Default: "sharepoint",
 		Help:    "Source name to be used in the config file",
 	}
-	survey.AskOne(sourceNameQ, &sourceName, survey.WithValidator(survey.Required))
+	_ = survey.AskOne(sourceNameQ, &sourceName, survey.WithValidator(survey.Required))
 	return sourceName
 }
 
@@ -150,6 +150,6 @@ func getDestination() string {
 		Default: "postgres",
 		Help:    "Destination name to be used in the config file",
 	}
-	survey.AskOne(destinationNameQ, &destination, survey.WithValidator(survey.Required))
+	_ = survey.AskOne(destinationNameQ, &destination, survey.WithValidator(survey.Required))
 	return destination
 }

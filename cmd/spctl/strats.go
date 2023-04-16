@@ -123,6 +123,12 @@ func getRedirect(siteURL string) (string, error) {
 		return "", err
 	}
 
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+	}()
+
 	if redirect, err := resp.Location(); err == nil && redirect != nil {
 		return getRedirect(redirect.String())
 	}
@@ -141,6 +147,12 @@ func isNTLM(siteURL string) bool {
 	if err != nil {
 		return false
 	}
+
+	defer func() {
+		if resp != nil && resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+	}()
 
 	/*
 		&{401 Unauthorized 401 HTTP/1.1 1 1 map[Content-Length:[16] Content-Type:[text/plain; charset=utf-8] Date:[Sat, 15 Apr 2023 22:11:52 GMT] Microsoftsharepointteamservices:[16.0.0.4822] Request-Id:[6692a9a0-df1b-e01d-9b62-c7422321cf92] Server:[Microsoft-IIS/8.5 Microsoft-HTTPAPI/2.0] Spiislatency:[0] Sprequestduration:[2] Sprequestguid:[6692a9a0-df1b-e01d-9b62-c7422321cf92] Www-Authenticate:[NTLM Negotiate] X-Content-Type-Options:[nosniff] X-Frame-Options:[SAMEORIGIN] X-Ms-Invokeapp:[1; RequireReadOnly] X-Powered-By:[ASP.NET]] 0x14000160300 16 [] false false map[] 0x140000be600 0x140000ac160}

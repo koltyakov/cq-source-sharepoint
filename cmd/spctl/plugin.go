@@ -23,7 +23,7 @@ func getPluginVersion() (string, error) {
 
 	defer resp.Body.Close()
 
-	var data map[string]interface{}
+	var data map[string]any
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return "", err
 	}

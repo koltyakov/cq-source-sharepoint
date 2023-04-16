@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func shouldBeURL(val interface{}) error {
+func shouldBeURL(val any) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("value is not a string")
@@ -21,7 +21,7 @@ func shouldBeURL(val interface{}) error {
 	return nil
 }
 
-func shouldBeEmail(val interface{}) error {
+func shouldBeEmail(val any) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("value is not a string")
@@ -34,7 +34,7 @@ func shouldBeEmail(val interface{}) error {
 	return nil
 }
 
-func shouldBeGUID(val interface{}) error {
+func shouldBeGUID(val any) error {
 	str, ok := val.(string)
 	if !ok {
 		return fmt.Errorf("value is not a string")
