@@ -8,7 +8,7 @@ import (
 type credsSurv struct{}
 
 var crypt = cpass.Cpass("")
-var creds = &credsSurv{}
+var credsResolver = &credsSurv{}
 
 func (c *credsSurv) ondemand() [][]string {
 	return [][]string{}
@@ -51,7 +51,7 @@ func (c *credsSurv) ntlm() [][]string {
 	}
 	survey.AskOne(domainQ, &domain, survey.WithValidator(survey.Required))
 
-	return append([][]string{{"domain", domain}}, creds.user()...)
+	return append([][]string{{"domain", domain}}, credsResolver.user()...)
 }
 
 func (c *credsSurv) saml() [][]string {
@@ -136,7 +136,7 @@ func (c *credsSurv) azurecert() [][]string {
 }
 
 func (c *credsSurv) azurecreds() [][]string {
-	return append(c.azurebase(), creds.saml()...)
+	return append(c.azurebase(), credsResolver.saml()...)
 }
 
 func (c *credsSurv) device() [][]string {

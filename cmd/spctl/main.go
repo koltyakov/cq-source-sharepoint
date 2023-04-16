@@ -10,6 +10,21 @@ import (
 )
 
 func main() {
+	siteURL := getSiteURL()
+	strategy := getStrategy(siteURL)
+	creds, err := getCreds(siteURL, strategy)
+	if err != nil {
+		fmt.Printf("\033[31mInvalid strategy: %s\033[0m\n", err)
+		return
+	}
+	_, err = checkAuth(siteURL, strategy, creds)
+	if err != nil {
+		fmt.Printf("\033[31mError: %s\033[0m\n", err)
+		return
+	}
+}
+
+func getSiteURL() string {
 	siteURLQ := &survey.Input{
 		Message: "SharePoint URL:",
 		Help:    "Site absolute URL, e.g. https://contoso.sharepoint.com/sites/MySite",
@@ -17,14 +32,15 @@ func main() {
 
 	var siteURL string
 	survey.AskOne(siteURLQ, &siteURL, survey.WithValidator(shouldBeURL))
+	return siteURL
+}
 
-	fmt.Print("\033[33m" + "Resolving auth strategy..." + "\033[0m")
-
-	strats, err := getStrategies(siteURL)
+func getStrategy(siteURL string) string {
+	strats, err := action("Resolving auth strategy...", func() ([]string, error) {
+		return getStrategies(siteURL)
+	})
 	if err != nil {
-		fmt.Print("\033[2K\r") // Clear line
-		fmt.Println("\033[31mError: " + err.Error() + "\033[0m")
-		// fmt.Println("\033[31m" + "Failed to resolve auth strategy, using all available" + "\033[0m")
+		fmt.Printf("\033[31mError: %s\033[0m\n", err)
 		strats = allStrats
 	}
 
@@ -40,45 +56,53 @@ func main() {
 	var strategy string
 	survey.AskOne(strategyQ, &strategy)
 
+	return strategy
+}
+
+func getCreds(siteURL, strategy string) ([][]string, error) {
 	s, ok := stratsConf[strategy]
 	if !ok {
-		fmt.Println("\033[31m" + "Invalid strategy" + "\033[0m")
-		return
+		return nil, fmt.Errorf("can't resolve strategy %s", strategy)
 	}
+	return s.Creds(), nil
+}
 
+func checkAuth(siteURL, strategy string, creds [][]string) (*api.SP, error) {
 	auth, err := newAuthByStrategy(strategy)
 	if err != nil {
-		fmt.Println("\033[31m" + "Error: " + err.Error() + "\033[0m")
-		return
+		return nil, err
 	}
 
-	authCreds := s.Creds()
-
-	credsConfig := map[string]string{
-		"siteURL": siteURL,
+	cnfg := map[string]string{"siteURL": siteURL}
+	for _, c := range creds {
+		cnfg[c[0]] = c[1]
 	}
-	for _, c := range authCreds {
-		credsConfig[c[0]] = c[1]
-	}
-	credsBytes, _ := json.Marshal(credsConfig)
+	credsBytes, _ := json.Marshal(cnfg)
 
 	if err := auth.ParseConfig(credsBytes); err != nil {
-		fmt.Println("\033[31m" + "Error: " + err.Error() + "\033[0m")
-		return
+		return nil, err
 	}
-
-	fmt.Print("\033[33m" + "Reaching site, checking auth..." + "\033[0m")
 
 	client := &gosip.SPClient{AuthCnfg: auth}
 	sp := api.NewSP(client)
 
-	web, err := sp.Web().Get()
+	web, err := action("Reaching site, checking auth...", sp.Web().Get)
 	if err != nil {
-		fmt.Print("\033[2K\r") // Clear line
-		fmt.Println("\033[31mError: " + err.Error() + "\033[0m")
-		return
+		return nil, err
 	}
 
-	fmt.Print("\033[2K\r") // Clear line
-	fmt.Println("\033[32m" + "Success! Site title: \"" + web.Data().Title + "\"\033[0m")
+	fmt.Printf("\033[32mSuccess! Site title: \"%s\"\033[0m\n", web.Data().Title)
+
+	return sp, nil
+}
+
+func action[T any](message string, fn func() (T, error)) (T, error) {
+	fmt.Printf("\033[33m%s\033[0m", message)
+	data, err := fn()
+	if err != nil {
+		fmt.Print("\033[2K\r")
+		return data, err
+	}
+	fmt.Print("\033[2K\r")
+	return data, nil
 }
