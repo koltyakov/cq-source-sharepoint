@@ -60,7 +60,7 @@ func getStrategies(siteURL string) ([]string, error) {
 	}
 
 	if env == "spo" {
-		return []string{"azurecert", "azurecreds", "device", "saml", "addin", "ondemand"}, nil
+		return []string{"ondemand", "azurecert", "azurecreds", "device", "saml", "addin"}, nil
 	}
 
 	redirectURL, err := getRedirect(siteURL)

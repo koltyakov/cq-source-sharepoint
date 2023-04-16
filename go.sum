@@ -187,6 +187,8 @@ github.com/koltyakov/gosip v0.0.0-20230318233122-99a4fec5b80d h1:Sho4XaU+jo8ZfCt
 github.com/koltyakov/gosip v0.0.0-20230318233122-99a4fec5b80d/go.mod h1:Y4hAZ6kZzlWxXUAq0Mo4s449D7Qj1bTm9naVp1PgMgk=
 github.com/koltyakov/gosip v0.0.0-20230409203300-04e65ae9c6d5 h1:MQ4gqNNVXXfeYF47lOm7xu9wSWTVCNGSJHBZ4mdSqXE=
 github.com/koltyakov/gosip v0.0.0-20230409203300-04e65ae9c6d5/go.mod h1:Y4hAZ6kZzlWxXUAq0Mo4s449D7Qj1bTm9naVp1PgMgk=
+github.com/koltyakov/gosip v0.0.0-20230416191329-2fa7a7295870 h1:Bct91XMLt+YXVTTVsGFue/DpmDDLz/AabF/88RNX6QE=
+github.com/koltyakov/gosip v0.0.0-20230416191329-2fa7a7295870/go.mod h1:Y4hAZ6kZzlWxXUAq0Mo4s449D7Qj1bTm9naVp1PgMgk=
 github.com/koltyakov/gosip-sandbox v0.0.0-20230319194837-d1628d35fe79 h1:fZs9rVTNL3C1mlM06PIcho75r2XRuo2SUD3TVzGUShM=
 github.com/koltyakov/gosip-sandbox v0.0.0-20230319194837-d1628d35fe79/go.mod h1:zuggwW9DtC2FCLUFPp98/9PtlACNQTTVkKVoeKNIOiI=
 github.com/koltyakov/gosip-sandbox v0.0.0-20230405020424-c0672a4f9530 h1:BjMflO6kLP7frK94GdBX6c3SNNcFEcm85gML5zMqLjc=
