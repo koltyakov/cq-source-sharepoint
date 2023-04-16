@@ -82,7 +82,7 @@ var stratsConf = map[string]Strategy{
 		Creds: credsResolver.ntlm,
 	},
 	"saml": {
-		Desc:  "SAML (Client Credentials) [SPO]",
+		Desc:  "SAML (User Credentials) [SPO]",
 		Docs:  "https://go.spflow.com/auth/strategies/saml",
 		Envs:  []string{SPO},
 		Creds: credsResolver.saml,

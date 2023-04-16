@@ -9,6 +9,8 @@ import (
 	"github.com/koltyakov/gosip/api"
 )
 
+var pluginVersion = "v1.6.2"
+
 func main() {
 	siteURL := getSiteURL()
 	strategy := getStrategy(siteURL)
@@ -22,6 +24,40 @@ func main() {
 		fmt.Printf("\033[31mError: %s\033[0m\n", err)
 		return
 	}
+
+	version, _ := getPluginVersion()
+	source := getSourceName()
+	destination := getDestination()
+
+	spec := &SourceSpec{
+		Name:         source,
+		Registry:     "github",
+		Path:         "koltyakov/sharepoint",
+		Version:      version,
+		Destinations: []string{destination},
+		Spec: PluginSpec{
+			Auth: AuthSpec{
+				Strategy: strategy,
+				Creds:    append([][]string{{"siteUrl", siteURL}}, creds...),
+			},
+		},
+	}
+
+	if err := spec.Save(source + ".yml"); err != nil {
+		fmt.Printf("\033[31mError: %s\033[0m\n", err)
+		return
+	}
+}
+
+func action[T any](message string, fn func() (T, error)) (T, error) {
+	fmt.Printf("\033[33m%s\033[0m", message)
+	data, err := fn()
+	if err != nil {
+		fmt.Print("\033[2K\r")
+		return data, err
+	}
+	fmt.Print("\033[2K\r")
+	return data, nil
 }
 
 func getSiteURL() string {
@@ -96,13 +132,24 @@ func checkAuth(siteURL, strategy string, creds [][]string) (*api.SP, error) {
 	return sp, nil
 }
 
-func action[T any](message string, fn func() (T, error)) (T, error) {
-	fmt.Printf("\033[33m%s\033[0m", message)
-	data, err := fn()
-	if err != nil {
-		fmt.Print("\033[2K\r")
-		return data, err
+func getSourceName() string {
+	var sourceName string
+	sourceNameQ := &survey.Input{
+		Message: "Source name:",
+		Default: "sharepoint",
+		Help:    "Source name to be used in the config file",
 	}
-	fmt.Print("\033[2K\r")
-	return data, nil
+	survey.AskOne(sourceNameQ, &sourceName, survey.WithValidator(survey.Required))
+	return sourceName
+}
+
+func getDestination() string {
+	var destination string
+	destinationNameQ := &survey.Input{
+		Message: "Destination name:",
+		Default: "postgres",
+		Help:    "Destination name to be used in the config file",
+	}
+	survey.AskOne(destinationNameQ, &destination, survey.WithValidator(survey.Required))
+	return destination
 }
