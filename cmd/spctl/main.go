@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
 	"github.com/koltyakov/gosip"
 	"github.com/koltyakov/gosip/api"
@@ -40,6 +41,14 @@ func main() {
 				fmt.Printf("\033[31mError: %s\033[0m\n", err)
 			}
 			fmt.Println(listsConf)
+		}
+
+		if scenario == "content_types" {
+			contentTypesConf, err := getContentTypesConf(sp)
+			if err != nil {
+				fmt.Printf("\033[31mError: %s\033[0m\n", err)
+			}
+			fmt.Println(contentTypesConf)
 		}
 	}
 
@@ -214,6 +223,7 @@ type listInfo struct {
 func getListsConf(sp *api.SP) ([]ListConf, error) {
 	resp, err := action("Getting lists", func() (api.ListsResp, error) {
 		return sp.Web().Lists().
+			Top(5000).
 			Select("Id,Title,RootFolder/ServerRelativeUrl").
 			Expand("RootFolder").Get()
 	})
@@ -232,7 +242,7 @@ func getListsConf(sp *api.SP) ([]ListConf, error) {
 		_ = json.Unmarshal(l.Normalized(), &info)
 		listURI := strings.Replace(info.RootFolder.URL, basePath, "", 1)
 
-		listKey := info.Title + " \033[90m(" + listURI + ")\033[0m"
+		listKey := info.Title + " \033[90m[" + listURI + "]\033[0m"
 		llMap[listKey] = info
 		ll[i] = listKey
 	}
@@ -248,8 +258,13 @@ func getListsConf(sp *api.SP) ([]ListConf, error) {
 	_ = survey.AskOne(listsQ, &listsToSync, survey.WithValidator(survey.Required))
 
 	for _, l := range listsToSync {
-		info := llMap[l]
-		if err := getListFieldsConf(sp, info.Title, info.RootFolder.URL); err != nil {
+		// info := llMap[l]
+
+		fmt.Println(l)
+		fmt.Println(getEntityID(l))
+		fmt.Println(getEntityType(getEntityID(l)))
+
+		if err := getFieldsConf(sp, l); err != nil {
 			return nil, err
 		}
 	}
@@ -258,26 +273,120 @@ func getListsConf(sp *api.SP) ([]ListConf, error) {
 	return listsConf, nil
 }
 
-func getListFieldsConf(sp *api.SP, name string, listURI string) error {
-	resp, err := action("Getting fields for "+name, func() (api.FieldsResp, error) {
-		return sp.Web().GetList(listURI).
-			Fields().
-			Filter("Hidden eq false and FieldTypeKind ne 12").
+type ContentTypeConf struct {
+	ID   string
+	Spec ct.Spec
+}
+
+func getContentTypesConf(sp *api.SP) ([]ContentTypeConf, error) {
+	resp, err := action("Getting content types", func() (api.ContentTypesResp, error) {
+		return sp.Web().ContentTypes().
+			Top(5000).
+			Filter("Hidden eq false and Group ne '_Hidden'").
+			OrderBy("Id", true).
 			Get()
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	data := resp.Data()
+	ctt := make([]string, len(data))
+	cttMap := make(map[string]api.ContentTypeResp)
+	for i, t := range data {
+		c := t.Data()
+		ctKey := c.Name + " \033[90m(" + c.Group + ") [" + c.ID + "]\033[0m"
+
+		cttMap[ctKey] = t
+		ctt[i] = ctKey
+	}
+
+	var contentTypesToSync []string
+	contentTypesQ := &survey.MultiSelect{
+		Message: "Select content types to sync:",
+		Options: ctt,
+		Filter: func(filter string, value string, index int) bool {
+			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
+		},
+	}
+	_ = survey.AskOne(contentTypesQ, &contentTypesToSync, survey.WithValidator(survey.Required))
+
+	for _, t := range contentTypesToSync {
+		// cttMap[ct].Data().Fields()
+		// fmt.Println(ct)
+		if err := getFieldsConf(sp, t); err != nil {
+			return nil, err
+		}
+	}
+
+	return []ContentTypeConf{}, nil
+}
+
+func getListFieldInfo(sp *api.SP, listURI string) ([]*api.FieldInfo, error) {
+	resp, err := sp.Web().GetList(listURI).
+		Fields().
+		Filter("Hidden eq false and FieldTypeKind ne 12").
+		Top(5000).
+		Get()
+	if err != nil {
+		return nil, err
+	}
+	rr := resp.Data()
+	dd := make([]*api.FieldInfo, len(rr))
+	for _, r := range rr {
+		dd = append(dd, r.Data())
+	}
+	return dd, nil
+}
+
+func getContentTypeFieldInfo(sp *api.SP, ctID string) ([]*api.FieldInfo, error) {
+	type contentTypeInfo struct {
+		Fields []*api.FieldInfo `json:"Fields"`
+	}
+	rest, err := sp.Web().ContentTypes().GetByID(ctID).
+		Expand("Fields").
+		Get()
+	if err != nil {
+		return nil, err
+	}
+	info := contentTypeInfo{}
+	_ = json.Unmarshal(rest.Normalized(), &info)
+
+	fields := []*api.FieldInfo{}
+	for _, f := range info.Fields {
+		if f.Hidden || f.FieldTypeKind == 12 {
+			continue
+		}
+		fields = append(fields, f)
+	}
+
+	return fields, nil
+}
+
+func getFieldsConf(sp *api.SP, entityName string) error {
+	entityID := getEntityID(entityName)
+
+	data, err := action("Getting fields for "+entityName, func() ([]*api.FieldInfo, error) {
+		if getEntityType(entityID) == "list" {
+			return getListFieldInfo(sp, entityID)
+		}
+		if getEntityType(entityID) == "content_type" {
+			return getContentTypeFieldInfo(sp, entityID)
+		}
+		return nil, fmt.Errorf("unknown entity type: %s", getEntityType(entityID))
 	})
 	if err != nil {
 		return err
 	}
 
-	data := resp.Data()
 	ignoreFields := []string{"AppAuthor", "AppEditor"}
-	dd := []api.FieldResp{}
+	dd := []*api.FieldInfo{}
 	for _, f := range data {
-		if f.Data().TypeAsString == "Lookup" && f.Data().LookupList == "" {
+		if f.TypeAsString == "Lookup" && f.LookupList == "" {
 			continue
 		}
 
-		if includes(ignoreFields, f.Data().EntityPropertyName) {
+		if includes(ignoreFields, f.EntityPropertyName) {
 			continue
 		}
 
@@ -286,15 +395,26 @@ func getListFieldsConf(sp *api.SP, name string, listURI string) error {
 
 	fields := make([]string, len(dd))
 	for i, f := range dd {
-		fields[i] = f.Data().Title +
-			" \033[90m(Prop: " + f.Data().EntityPropertyName +
-			", Type: " + f.Data().TypeAsString + ")\033[0m"
+		fields[i] = f.Title +
+			" \033[90m[" + f.EntityPropertyName + "]" +
+			" " + f.TypeAsString + "\033[0m"
 	}
+
+	defaultFieldNames := []string{"ID", "Title"}
+	defaultFields := []string{}
+	for _, f := range fields {
+		if includes(defaultFieldNames, getEntityID(f)) {
+			defaultFields = append(defaultFields, f)
+		}
+	}
+
+	// ToDo: No fields no prompt
 
 	var fieldsToSync []string
 	fieldsQ := &survey.MultiSelect{
-		Message: "Select fields to sync for " + name + ":",
+		Message: "Select fields to sync for " + entityName + ":",
 		Options: fields,
+		Default: defaultFields,
 		Filter: func(filter string, value string, index int) bool {
 			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
 		},
@@ -302,13 +422,4 @@ func getListFieldsConf(sp *api.SP, name string, listURI string) error {
 	_ = survey.AskOne(fieldsQ, &fieldsToSync, survey.WithValidator(survey.Required))
 
 	return nil
-}
-
-func includes(arr []string, s string) bool {
-	for _, a := range arr {
-		if a == s {
-			return true
-		}
-	}
-	return false
 }
