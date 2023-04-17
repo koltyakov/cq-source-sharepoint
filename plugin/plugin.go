@@ -3,8 +3,8 @@ package plugin
 import (
 	"context"
 
-	"github.com/cloudquery/plugin-sdk/plugins/source"
-	"github.com/cloudquery/plugin-sdk/schema"
+	"github.com/cloudquery/plugin-sdk/v2/plugins/source"
+	"github.com/cloudquery/plugin-sdk/v2/schema"
 	"github.com/koltyakov/cq-source-sharepoint/client"
 )
 

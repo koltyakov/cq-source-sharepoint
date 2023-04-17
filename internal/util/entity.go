@@ -3,7 +3,7 @@ package util
 import (
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/caser"
+	"github.com/cloudquery/plugin-sdk/v2/caser"
 )
 
 func NormalizeEntityName(name string) string {

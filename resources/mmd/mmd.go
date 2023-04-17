@@ -3,7 +3,7 @@ package mmd
 import (
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/schema"
+	"github.com/cloudquery/plugin-sdk/v2/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
