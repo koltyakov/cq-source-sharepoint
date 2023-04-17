@@ -6,24 +6,25 @@ import (
 )
 
 type SourceSpec struct {
-	Name         string     `json:"name"`
-	Registry     string     `json:"registry"`
-	Path         string     `json:"path"`
-	Version      string     `json:"version"`
-	Destinations []string   `json:"destination"`
-	Spec         PluginSpec `json:"spec"`
+	Name         string
+	Registry     string
+	Path         string
+	Version      string
+	Destinations []string
+	Spec         PluginSpec
 }
 
 type PluginSpec struct {
-	Auth         AuthSpec          `json:"auth"`
-	Lists        []ListConf        `json:"lists"`
-	ContentTypes []ContentTypeConf `json:"content_types"`
-	MMD          []MMDConf         `json:"mmd"`
+	Auth         AuthSpec
+	Lists        []ListConf
+	ContentTypes []ContentTypeConf
+	MMD          []MMDConf
+	Profiles     bool
 }
 
 type AuthSpec struct {
-	Strategy string     `json:"strategy"`
-	Creds    [][]string `json:"creds"`
+	Strategy string
+	Creds    [][]string
 }
 
 func (s *SourceSpec) Marshal() []byte {
@@ -52,6 +53,10 @@ spec:
 
 	if len(s.Spec.MMD) > 0 {
 		spec += marshalMMD(s.Spec.MMD)
+	}
+
+	if s.Spec.Profiles {
+		spec += marshalProfiles()
 	}
 
 	return []byte(strings.TrimSpace(spec))
@@ -122,5 +127,11 @@ func marshalMMD(mmdSpec []MMDConf) string {
 		res += "      " + mmd.ID + ":\n"
 		res += "        alias: \"" + mmd.Spec.Alias + "\"\n"
 	}
+	return res
+}
+
+func marshalProfiles() string {
+	res := "    profiles:\n"
+	res += "      enabled: true\n"
 	return res
 }

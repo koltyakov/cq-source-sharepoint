@@ -68,6 +68,10 @@ func main() {
 			}
 			spec.Spec.MMD = mmdConf
 		}
+
+		if scenario == "profiles" {
+			spec.Spec.Profiles = true
+		}
 	}
 
 	if err := spec.Save(source + ".yml"); err != nil {
