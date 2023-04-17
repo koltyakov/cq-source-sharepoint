@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"strings"
 )
@@ -20,6 +21,7 @@ type PluginSpec struct {
 	ContentTypes []ContentTypeConf
 	MMD          []MMDConf
 	Profiles     bool
+	Search       []SearchConf
 }
 
 type AuthSpec struct {
@@ -57,6 +59,10 @@ spec:
 
 	if s.Spec.Profiles {
 		spec += marshalProfiles()
+	}
+
+	if len(s.Spec.Search) > 0 {
+		spec += marshalSearch(s.Spec.Search)
 	}
 
 	return []byte(strings.TrimSpace(spec))
@@ -133,5 +139,24 @@ func marshalMMD(mmdSpec []MMDConf) string {
 func marshalProfiles() string {
 	res := "    profiles:\n"
 	res += "      enabled: true\n"
+	return res
+}
+
+func marshalSearch(searchSpec []SearchConf) string {
+	res := "    search:\n"
+	for _, search := range searchSpec {
+		res += "      " + search.ID + ":\n"
+		res += "        query_text: \"" + search.QueryText + "\"\n"
+		if len(search.SourceID) > 0 {
+			res += "        source_id: \"" + search.SourceID + "\"\n"
+		}
+		res += fmt.Sprintf("        trim_duplicates: %t\n", search.TrimDuplicates)
+		if len(search.SelectProperties) > 0 {
+			res += "        select_properties:\n"
+			for _, prop := range search.SelectProperties {
+				res += "          - " + prop + "\n"
+			}
+		}
+	}
 	return res
 }

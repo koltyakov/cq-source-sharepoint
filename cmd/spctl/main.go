@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/signal"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/koltyakov/gosip"
@@ -10,6 +12,15 @@ import (
 )
 
 var pluginVersion = "v1.6.2"
+
+func init() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		<-c
+		panic("interrupted")
+	}()
+}
 
 func main() {
 	siteURL := getSiteURL()
@@ -69,6 +80,14 @@ func main() {
 			spec.Spec.MMD = mmdConf
 		}
 
+		if scenario == "search" {
+			searchConfs, err := getSearchConfs(sp)
+			if err != nil {
+				fmt.Printf("\033[31mError: %s\033[0m\n", err)
+			}
+			spec.Spec.Search = searchConfs
+		}
+
 		if scenario == "profiles" {
 			spec.Spec.Profiles = true
 		}
@@ -92,13 +111,11 @@ func action[T any](message string, fn func() (T, error)) (T, error) {
 }
 
 func getSiteURL() string {
-	siteURLQ := &survey.Input{
+	var siteURL string
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "SharePoint URL:",
 		Help:    "Site absolute URL, e.g. https://contoso.sharepoint.com/sites/MySite",
-	}
-
-	var siteURL string
-	_ = survey.AskOne(siteURLQ, &siteURL, survey.WithValidator(shouldBeURL))
+	}, &siteURL, survey.WithValidator(shouldBeURL), survey.WithValidator(shouldBeSPSite)))
 	return siteURL
 }
 
@@ -111,17 +128,15 @@ func getStrategy(siteURL string) string {
 		strats = allStrats
 	}
 
-	strategyQ := &survey.Select{
+	var strategy string
+	interuptable(survey.AskOne(&survey.Select{
 		Message: "Auth method:",
 		Options: strats,
 		Help:    "See more at https://go.spflow.com/auth/overview",
 		Description: func(value string, index int) string {
 			return stratsConf[value].Desc
 		},
-	}
-
-	var strategy string
-	_ = survey.AskOne(strategyQ, &strategy)
+	}, &strategy))
 
 	return strategy
 }
@@ -158,6 +173,10 @@ func checkAuth(siteURL, strategy string, creds [][]string) (*api.SP, error) {
 		return nil, err
 	}
 
+	if web.Data().Title == "" {
+		return nil, fmt.Errorf("can't reach site, check that Site URL is correct")
+	}
+
 	fmt.Printf("\033[32mSuccess! Site title: \"%s\"\033[0m\n", web.Data().Title)
 
 	return sp, nil
@@ -165,22 +184,20 @@ func checkAuth(siteURL, strategy string, creds [][]string) (*api.SP, error) {
 
 func getSourceName() string {
 	var sourceName string
-	sourceNameQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Source name:",
 		Default: "sharepoint",
 		Help:    "Source name to be used in the config file",
-	}
-	_ = survey.AskOne(sourceNameQ, &sourceName, survey.WithValidator(survey.Required))
+	}, &sourceName, survey.WithValidator(survey.Required)))
 	return sourceName
 }
 
 func getDestination() string {
 	var destination string
-	destinationNameQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Destination name:",
 		Default: "postgres",
 		Help:    "Destination name to be used in the config file",
-	}
-	_ = survey.AskOne(destinationNameQ, &destination, survey.WithValidator(survey.Required))
+	}, &destination, survey.WithValidator(survey.Required)))
 	return destination
 }

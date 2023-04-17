@@ -37,14 +37,13 @@ func getContentTypesConf(sp *api.SP) ([]ContentTypeConf, error) {
 	}
 
 	var contentTypesToSync []string
-	contentTypesQ := &survey.MultiSelect{
+	interuptable(survey.AskOne(&survey.MultiSelect{
 		Message: "Select content types to sync:",
 		Options: ctt,
 		Filter: func(filter string, value string, index int) bool {
 			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
 		},
-	}
-	_ = survey.AskOne(contentTypesQ, &contentTypesToSync, survey.WithValidator(survey.Required))
+	}, &contentTypesToSync, survey.WithValidator(survey.Required)))
 
 	ctConf := make([]ContentTypeConf, len(contentTypesToSync))
 	for i, t := range contentTypesToSync {

@@ -64,15 +64,14 @@ func getFieldsConf(sp *api.SP, entityName string) (*FieldsConf, error) {
 	// ToDo: No fields no prompt
 
 	var fieldsToSync []string
-	fieldsQ := &survey.MultiSelect{
+	interuptable(survey.AskOne(&survey.MultiSelect{
 		Message: "Select fields to sync for " + entityName + ":",
 		Options: fieldsOptsStr,
 		Default: defaultFields,
 		Filter: func(filter string, value string, index int) bool {
 			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
 		},
-	}
-	_ = survey.AskOne(fieldsQ, &fieldsToSync, survey.WithValidator(survey.Required))
+	}, &fieldsToSync, survey.WithValidator(survey.Required)))
 
 	fieldsConf := &FieldsConf{
 		Select: make([]string, len(fieldsToSync)),

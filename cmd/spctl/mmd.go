@@ -48,14 +48,13 @@ func getMMDConf(sp *api.SP) ([]MMDConf, error) {
 	}
 
 	var termSetsToSync []string
-	termSetsQ := &survey.MultiSelect{
+	interuptable(survey.AskOne(&survey.MultiSelect{
 		Message: "Select term sets to sync:",
 		Options: termsetsNames,
 		Filter: func(filter string, value string, index int) bool {
 			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
 		},
-	}
-	_ = survey.AskOne(termSetsQ, &termSetsToSync, survey.WithValidator(survey.Required))
+	}, &termSetsToSync, survey.WithValidator(survey.Required)))
 
 	mmdConf := make([]MMDConf, len(termSetsToSync))
 	for i, t := range termSetsToSync {

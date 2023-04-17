@@ -5,25 +5,23 @@ import "github.com/AlecAivazis/survey/v2"
 var syncScenariosMap = map[string]string{
 	"Lists and libraries":    "lists",
 	"Content types rollup":   "content_types",
-	"Search driven queries":  "search",
 	"Managed metadata terms": "mmd",
 	"User profiles (UPS)":    "profiles",
+	"Search driven data":     "search",
 }
 
 func getSyncScenarios() []string {
-	syncScenariosQ := &survey.MultiSelect{
+	var syncScenarios []string
+	interuptable(survey.AskOne(&survey.MultiSelect{
 		Message: "Select subjects of sync:",
 		Options: []string{
 			"Lists and libraries",
 			"Content types rollup",
-			"Search driven queries",
 			"Managed metadata terms",
 			"User profiles (UPS)",
+			"Search driven data",
 		},
-	}
-
-	var syncScenarios []string
-	_ = survey.AskOne(syncScenariosQ, &syncScenarios, survey.WithValidator(survey.Required))
+	}, &syncScenarios, survey.WithValidator(survey.Required)))
 
 	for i, s := range syncScenarios {
 		syncScenarios[i] = syncScenariosMap[s]

@@ -16,23 +16,20 @@ func (*credsSurv) ondemand() [][]string {
 
 func (*credsSurv) user() [][]string {
 	var username string
-	usernameQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "User name:",
-	}
-	_ = survey.AskOne(usernameQ, &username, survey.WithValidator(survey.Required))
+	}, &username, survey.WithValidator(survey.Required)))
 
 	var password string
-	passwordQ := &survey.Password{
+	interuptable(survey.AskOne(&survey.Password{
 		Message: "Password:",
-	}
-	_ = survey.AskOne(passwordQ, &password, survey.WithValidator(survey.Required))
+	}, &password, survey.WithValidator(survey.Required)))
 
 	var encrypt bool
-	encryptQ := &survey.Confirm{
+	interuptable(survey.AskOne(&survey.Confirm{
 		Message: "Encrypt password?",
 		Default: true,
-	}
-	_ = survey.AskOne(encryptQ, &encrypt)
+	}, &encrypt))
 
 	if encrypt {
 		password, _ = crypt.Encode(password)
@@ -46,33 +43,29 @@ func (*credsSurv) user() [][]string {
 
 func (*credsSurv) ntlm() [][]string {
 	var domain string
-	domainQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Domain:",
-	}
-	_ = survey.AskOne(domainQ, &domain, survey.WithValidator(survey.Required))
+	}, &domain, survey.WithValidator(survey.Required)))
 
 	return append([][]string{{"domain", domain}}, credsResolver.user()...)
 }
 
 func (*credsSurv) saml() [][]string {
 	var username string
-	usernameQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "User name:",
-	}
-	_ = survey.AskOne(usernameQ, &username, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeEmail))
+	}, &username, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeEmail)))
 
 	var password string
-	passwordQ := &survey.Password{
+	interuptable(survey.AskOne(&survey.Password{
 		Message: "Password:",
-	}
-	_ = survey.AskOne(passwordQ, &password, survey.WithValidator(survey.Required))
+	}, &password, survey.WithValidator(survey.Required)))
 
 	var encrypt bool
-	encryptQ := &survey.Confirm{
+	interuptable(survey.AskOne(&survey.Confirm{
 		Message: "Encrypt password?",
 		Default: true,
-	}
-	_ = survey.AskOne(encryptQ, &encrypt)
+	}, &encrypt))
 
 	if encrypt {
 		password, _ = crypt.Encode(password)
@@ -86,16 +79,14 @@ func (*credsSurv) saml() [][]string {
 
 func (*credsSurv) azurebase() [][]string {
 	var tenantID string
-	tenantIDQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Tenant ID:",
-	}
-	_ = survey.AskOne(tenantIDQ, &tenantID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID))
+	}, &tenantID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID)))
 
 	var clientID string
-	clientIDQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Client ID:",
-	}
-	_ = survey.AskOne(clientIDQ, &clientID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID))
+	}, &clientID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID)))
 
 	return [][]string{
 		{"tenantId", tenantID},
@@ -107,23 +98,20 @@ func (c *credsSurv) azurecert() [][]string {
 	azurebase := c.azurebase()
 
 	var certPath string
-	certPathQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Certificate path:",
-	}
-	_ = survey.AskOne(certPathQ, &certPath, survey.WithValidator(survey.Required))
+	}, &certPath, survey.WithValidator(survey.Required)))
 
 	var certPass string
-	certPassQ := &survey.Password{
+	interuptable(survey.AskOne(&survey.Password{
 		Message: "Certificate password:",
-	}
-	_ = survey.AskOne(certPassQ, &certPass, survey.WithValidator(survey.Required))
+	}, &certPass, survey.WithValidator(survey.Required)))
 
 	var encrypt bool
-	encryptQ := &survey.Confirm{
+	interuptable(survey.AskOne(&survey.Confirm{
 		Message: "Encrypt password?",
 		Default: true,
-	}
-	_ = survey.AskOne(encryptQ, &encrypt)
+	}, &encrypt))
 
 	if encrypt {
 		certPass, _ = crypt.Encode(certPass)
@@ -145,23 +133,20 @@ func (c *credsSurv) device() [][]string {
 
 func (*credsSurv) addin() [][]string {
 	var clientID string
-	clientIDQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Client ID:",
-	}
-	_ = survey.AskOne(clientIDQ, &clientID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID))
+	}, &clientID, survey.WithValidator(survey.Required), survey.WithValidator(shouldBeGUID)))
 
 	var clientSecret string
-	clientSecretQ := &survey.Password{
+	interuptable(survey.AskOne(&survey.Password{
 		Message: "Client Secret:",
-	}
-	_ = survey.AskOne(clientSecretQ, &clientSecret, survey.WithValidator(survey.Required))
+	}, &clientSecret, survey.WithValidator(survey.Required)))
 
 	var encrypt bool
-	encryptQ := &survey.Confirm{
+	interuptable(survey.AskOne(&survey.Confirm{
 		Message: "Encrypt secret?",
 		Default: true,
-	}
-	_ = survey.AskOne(encryptQ, &encrypt)
+	}, &encrypt))
 
 	if encrypt {
 		clientSecret, _ = crypt.Encode(clientSecret)
@@ -175,44 +160,38 @@ func (*credsSurv) addin() [][]string {
 
 func (*credsSurv) adfs() [][]string {
 	var username string
-	usernameQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "User name:",
-	}
-	_ = survey.AskOne(usernameQ, &username, survey.WithValidator(survey.Required))
+	}, &username, survey.WithValidator(survey.Required)))
 
 	var password string
-	passwordQ := &survey.Password{
+	interuptable(survey.AskOne(&survey.Password{
 		Message: "Password:",
-	}
-	_ = survey.AskOne(passwordQ, &password, survey.WithValidator(survey.Required))
+	}, &password, survey.WithValidator(survey.Required)))
 
 	var relyingParty string
-	relyingPartyQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "Relying Party:",
 		Default: "urn:sharepoint:www",
-	}
-	_ = survey.AskOne(relyingPartyQ, &relyingParty, survey.WithValidator(survey.Required))
+	}, &relyingParty, survey.WithValidator(survey.Required)))
 
 	var adfsURL string
-	adfsURLQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "ADFS URL:",
 		Help:    "E.g.: https://login.contoso.com",
-	}
-	_ = survey.AskOne(adfsURLQ, &adfsURL, survey.WithValidator(survey.Required))
+	}, &adfsURL, survey.WithValidator(survey.Required)))
 
 	var adfsCookie string
-	adfsCookieQ := &survey.Input{
+	interuptable(survey.AskOne(&survey.Input{
 		Message: "ADFS Cookie:",
 		Default: "FedAuth",
-	}
-	_ = survey.AskOne(adfsCookieQ, &adfsCookie, survey.WithValidator(survey.Required))
+	}, &adfsCookie, survey.WithValidator(survey.Required)))
 
 	var encrypt bool
-	encryptQ := &survey.Confirm{
+	interuptable(survey.AskOne(&survey.Confirm{
 		Message: "Encrypt password?",
 		Default: true,
-	}
-	_ = survey.AskOne(encryptQ, &encrypt)
+	}, &encrypt))
 
 	if encrypt {
 		password, _ = crypt.Encode(password)

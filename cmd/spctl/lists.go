@@ -51,14 +51,13 @@ func getListsConf(sp *api.SP) ([]ListConf, error) {
 	}
 
 	var listsToSync []string
-	listsQ := &survey.MultiSelect{
+	interuptable(survey.AskOne(&survey.MultiSelect{
 		Message: "Select lists to sync:",
 		Options: ll,
 		Filter: func(filter string, value string, index int) bool {
 			return strings.Contains(strings.ToLower(value), strings.ToLower(filter))
 		},
-	}
-	_ = survey.AskOne(listsQ, &listsToSync, survey.WithValidator(survey.Required))
+	}, &listsToSync, survey.WithValidator(survey.Required)))
 
 	listsConf := make([]ListConf, len(listsToSync))
 	for i, l := range listsToSync {
