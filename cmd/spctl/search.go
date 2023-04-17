@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/koltyakov/gosip/api"
 )
@@ -68,8 +70,14 @@ func getSearchConf(sp *api.SP) (SearchConf, error) {
 		return searchConf, err
 	}
 
+	rows := res.Data().PrimaryQueryResult.RelevantResults.Table.Rows
+	if len(rows) == 0 {
+		fmt.Println("Warning: no results found for the query")
+		return searchConf, nil
+	}
+
 	searchProps := []string{}
-	for _, prop := range res.Data().PrimaryQueryResult.RelevantResults.Table.Rows[0].Cells {
+	for _, prop := range rows[0].Cells {
 		propName := prop.Key
 		searchProps = append(searchProps, propName)
 	}
