@@ -22,13 +22,6 @@ spec:
       strategy: "ondemand"
       creds:
         siteUrl: ${SP_SITE_URL}
-    search:
-      profiles:
-        query_text: "*"
-        source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
-        trim_duplicates: false
-        select_properties:
-          - Title -> name
     lists:
       _catalogs/users:
         select:
@@ -108,3 +101,5 @@ spec:
         query_text: "*"
         source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
         trim_duplicates: false
+        select_properties:
+          - Title -> name
