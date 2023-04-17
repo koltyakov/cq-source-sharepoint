@@ -1,7 +1,7 @@
 package search
 
 import (
-	"github.com/cloudquery/plugin-sdk/schema"
+	"github.com/cloudquery/plugin-sdk/v2/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
@@ -86,7 +86,13 @@ func (s *Search) schemaBySpec(spec Spec) ([]*api.TypedKeyValue, error) {
 		return nil, err
 	}
 
-	return res.Data().Properties, nil
+	rows := res.Data().PrimaryQueryResult.RelevantResults.Table.Rows
+
+	if len(rows) == 0 {
+		return []*api.TypedKeyValue{}, nil
+	}
+
+	return rows[0].Cells, nil
 }
 
 func getFieldAlias(field string, mapping map[string]string) string {
