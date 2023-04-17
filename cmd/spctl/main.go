@@ -60,6 +60,14 @@ func main() {
 			}
 			spec.Spec.ContentTypes = contentTypesConf
 		}
+
+		if scenario == "mmd" {
+			mmdConf, err := getMMDConf(sp)
+			if err != nil {
+				fmt.Printf("\033[31mError: %s\033[0m\n", err)
+			}
+			spec.Spec.MMD = mmdConf
+		}
 	}
 
 	if err := spec.Save(source + ".yml"); err != nil {

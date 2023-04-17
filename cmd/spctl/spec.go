@@ -18,6 +18,7 @@ type PluginSpec struct {
 	Auth         AuthSpec          `json:"auth"`
 	Lists        []ListConf        `json:"lists"`
 	ContentTypes []ContentTypeConf `json:"content_types"`
+	MMD          []MMDConf         `json:"mmd"`
 }
 
 type AuthSpec struct {
@@ -47,6 +48,10 @@ spec:
 
 	if len(s.Spec.ContentTypes) > 0 {
 		spec += marshalContentTypes(s.Spec.ContentTypes)
+	}
+
+	if len(s.Spec.MMD) > 0 {
+		spec += marshalMMD(s.Spec.MMD)
 	}
 
 	return []byte(strings.TrimSpace(spec))
@@ -107,6 +112,15 @@ func marshalContentTypes(ctSpec []ContentTypeConf) string {
 		if len(ct.Spec.Alias) > 0 {
 			res += "        alias: \"" + ct.Spec.Alias + "\"\n"
 		}
+	}
+	return res
+}
+
+func marshalMMD(mmdSpec []MMDConf) string {
+	res := "    mmd:\n"
+	for _, mmd := range mmdSpec {
+		res += "      " + mmd.ID + ":\n"
+		res += "        alias: \"" + mmd.Spec.Alias + "\"\n"
 	}
 	return res
 }
