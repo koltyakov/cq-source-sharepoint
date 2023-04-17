@@ -86,7 +86,13 @@ func (s *Search) schemaBySpec(spec Spec) ([]*api.TypedKeyValue, error) {
 		return nil, err
 	}
 
-	return res.Data().PrimaryQueryResult.RelevantResults.Table.Rows[0].Cells, nil
+	rows := res.Data().PrimaryQueryResult.RelevantResults.Table.Rows
+
+	if len(rows) == 0 {
+		return []*api.TypedKeyValue{}, nil
+	}
+
+	return rows[0].Cells, nil
 }
 
 func getFieldAlias(field string, mapping map[string]string) string {
