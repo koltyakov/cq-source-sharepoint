@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
-	github.com/brianvoe/gofakeit/v6 v6.20.2
-	github.com/cloudquery/plugin-sdk/v2 v2.2.0
+	github.com/brianvoe/gofakeit/v6 v6.21.0
+	github.com/cloudquery/plugin-sdk/v2 v2.3.1
 	github.com/google/uuid v1.3.0
 	github.com/koltyakov/gosip v0.0.0-20230416191329-2fa7a7295870
 	github.com/koltyakov/gosip-sandbox v0.0.0-20230410140555-1211f873b91c
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.29.1
 	github.com/schollz/progressbar/v3 v3.13.1
 	github.com/thoas/go-funk v0.9.3
 	golang.org/x/sync v0.1.0
