@@ -356,7 +356,7 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v1.3.5"
+  version: "v2.0.3"
   spec:
     connection_string: ./db.sql
 ```
