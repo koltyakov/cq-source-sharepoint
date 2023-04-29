@@ -40,7 +40,7 @@ spec:
 
 ### Interactive schema builder
 
-Since v1.8.0, the plugin ships with configureation utility `spctl`.
+Since v1.8.0, the plugin ships with configuration utility `spctl`.
 
 ![](./assets/spctl.gif)
 
