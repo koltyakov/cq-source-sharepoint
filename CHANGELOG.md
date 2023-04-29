@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 (2023-04-07)
+
+- Migrate to CloudQuery Plugin SDK v2
+
 ## 1.6.0 (2023-03-26)
 
 - Content Types based rollup

@@ -11,8 +11,6 @@ import (
 	"github.com/koltyakov/gosip/api"
 )
 
-var pluginVersion = "v1.6.2"
-
 func init() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -23,6 +21,13 @@ func init() {
 }
 
 func main() {
+	if len(os.Args) > 1 {
+		if os.Args[1] == "version" {
+			printVersion()
+			return
+		}
+	}
+
 	siteURL := getSiteURL()
 	strategy := getStrategy(siteURL)
 	creds, err := getCreds(strategy)
