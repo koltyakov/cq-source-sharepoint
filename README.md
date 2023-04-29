@@ -38,6 +38,16 @@ spec:
     # we can change this in future based on the feedback
 ```
 
+### Interactive schema builder
+
+Since v1.8.0, the plugin ships with configureation utility `spctl`.
+
+![](./assets/spctl.gif)
+
+It can be downloaded from [releases](https://github.com/koltyakov/cq-source-sharepoint/releases): `spctl_[OS]_[ARCH].zip`.
+
+On a macOS System Settings / Security allowance is needed for it to run.
+
 ### Authentication options
 
 ```yaml
