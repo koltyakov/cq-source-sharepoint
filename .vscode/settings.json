@@ -15,7 +15,7 @@
     "**/*_gen.go": true,
     "bin/": true,
     ".vscode/": true,
-    "**/db.sql": true,
+    "**/*.db": true,
     "**/.cq/": true,
     "db.sql-journal": true
   },
