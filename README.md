@@ -32,6 +32,7 @@ spec:
   path: "koltyakov/sharepoint"
   version: "v1.7.2" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
+  tables: ["*"] # required field, a list of tables to sync
   spec:
     # Spec is mandatory
     # This plugin follows idealogy of explicit configuration
@@ -305,6 +306,7 @@ spec:
   path: "koltyakov/sharepoint"
   version: "v1.7.2" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
+  tables: ["*"]
   spec:
     auth:
       strategy: "ondemand"
