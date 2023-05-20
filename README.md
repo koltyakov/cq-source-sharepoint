@@ -30,7 +30,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.7.2" # provide the latest stable version
+  version: "v1.8.2" # provide the latest stable version
   destinations: ["postgresql"] # provide the list of used destinations
   tables: ["*"] # required field, a list of tables to sync
   spec:
@@ -304,7 +304,7 @@ spec:
   name: "sharepoint"
   registry: "github"
   path: "koltyakov/sharepoint"
-  version: "v1.7.2" # https://github.com/koltyakov/cq-source-sharepoint/releases
+  version: "v1.8.2" # https://github.com/koltyakov/cq-source-sharepoint/releases
   destinations: ["sqlite"]
   tables: ["*"]
   spec:
@@ -387,7 +387,7 @@ Loading spec(s) from sharepoint_reg.yml, sqlite.yml
 Downloading https://github.com/koltyakov/...sharepoint_darwin_arm64.zip
 Downloading 100% |█████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
 Migration completed successfully.
-Starting sync for: sharepoint (v1.7.2) -> [sqlite (v1.3.5)]
+Starting sync for: sharepoint (v1.8.2) -> [sqlite (v2.1.0)]
 Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
 ```
 

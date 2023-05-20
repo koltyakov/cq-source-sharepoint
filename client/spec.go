@@ -3,7 +3,7 @@ package client
 import (
 	"fmt"
 
-	"github.com/cloudquery/plugin-sdk/v2/specs"
+	"github.com/cloudquery/plugin-pb-go/specs"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
 	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"

@@ -2,6 +2,6 @@ kind: destination
 spec:
   name: "postgresql"
   path: "cloudquery/postgresql"
-  version: "v4.0.4"
+  version: "v4.1.1"
   spec:
     connection_string: "postgresql://postgres:postgres@localhost:5432/postgres?sslmode=disable"
