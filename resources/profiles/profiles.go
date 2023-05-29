@@ -1,7 +1,9 @@
 package profiles
 
 import (
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v3/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
@@ -41,15 +43,15 @@ func (u *Profiles) GetDestTable(spec Spec) (*schema.Table, error) {
 		Name:        "sharepoint_ups_" + tableName,
 		Description: "User Profiles",
 		Columns: []schema.Column{
-			{Name: "id", Type: schema.TypeUUID, Description: "UniqueId", CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
-			{Name: "title", Type: schema.TypeString, Description: "Title"},
-			{Name: "email", Type: schema.TypeString, Description: "WorkEmail"},
-			{Name: "job", Type: schema.TypeString, Description: "JobTitle"},
-			{Name: "department", Type: schema.TypeString, Description: "Department"},
-			{Name: "picture", Type: schema.TypeString, Description: "PictureURL"},
-			{Name: "account", Type: schema.TypeString, Description: "AccountName"},
-			{Name: "path", Type: schema.TypeString, Description: "Path"},
-			{Name: "modified", Type: schema.TypeTimestamp, Description: "LastModifiedTime"},
+			{Name: "id", Type: types.UUID, Description: "UniqueId", PrimaryKey: true},
+			{Name: "title", Type: arrow.BinaryTypes.String, Description: "Title"},
+			{Name: "email", Type: arrow.BinaryTypes.String, Description: "WorkEmail"},
+			{Name: "job", Type: arrow.BinaryTypes.String, Description: "JobTitle"},
+			{Name: "department", Type: arrow.BinaryTypes.String, Description: "Department"},
+			{Name: "picture", Type: arrow.BinaryTypes.String, Description: "PictureURL"},
+			{Name: "account", Type: arrow.BinaryTypes.String, Description: "AccountName"},
+			{Name: "path", Type: arrow.BinaryTypes.String, Description: "Path"},
+			{Name: "modified", Type: arrow.FixedWidthTypes.Timestamp_us, Description: "LastModifiedTime"},
 		},
 	}
 

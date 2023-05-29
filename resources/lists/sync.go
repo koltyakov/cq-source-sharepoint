@@ -7,8 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/v2/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
+	"github.com/cloudquery/plugin-sdk/v3/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/thoas/go-funk"
 )
@@ -80,7 +81,7 @@ func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, re
 func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, error) {
 	resource := schema.NewResourceData(table, nil, values)
 	for i, col := range table.Columns {
-		if col.Type == schema.TypeString {
+		if col.Type == arrow.BinaryTypes.String {
 			if values[i] != nil {
 				values[i] = fmt.Sprintf("%v", values[i])
 			}

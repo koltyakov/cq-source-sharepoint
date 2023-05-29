@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v3/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
@@ -112,7 +114,7 @@ func (l *Lists) getDestCol(prop string, tableName string, spec Spec, fieldsData 
 
 	field.InternalName = fieldAlias
 	col := l.columnFromField(field, tableName)
-	col.CreationOptions.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
+	col.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
 	col.Description = prop
 
 	return col
@@ -151,32 +153,32 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 
 	switch field.TypeAsString {
 	case "Text", "Note", "ContentTypeId":
-		c.Type = schema.TypeString
+		c.Type = arrow.BinaryTypes.String
 	case "Integer", "Counter":
-		c.Type = schema.TypeInt
+		c.Type = arrow.PrimitiveTypes.Int32
 	case "Currency":
-		c.Type = schema.TypeFloat
+		c.Type = arrow.PrimitiveTypes.Float32
 	case "Number":
-		c.Type = schema.TypeFloat
+		c.Type = arrow.PrimitiveTypes.Float32
 	case "DateTime":
-		c.Type = schema.TypeTimestamp
+		c.Type = arrow.FixedWidthTypes.Timestamp_us
 	case "Boolean", "Attachments":
-		c.Type = schema.TypeBool
+		c.Type = arrow.FixedWidthTypes.Boolean
 	case "Guid":
-		c.Type = schema.TypeUUID
+		c.Type = types.UUID
 	case "Lookup", "User":
-		c.Type = schema.TypeInt
+		c.Type = arrow.PrimitiveTypes.Int32
 	case "LookupMulti", "UserMulti":
-		c.Type = schema.TypeIntArray
+		c.Type = arrow.ListOf(arrow.PrimitiveTypes.Int32)
 	case "Choice":
-		c.Type = schema.TypeString
+		c.Type = arrow.BinaryTypes.String
 	case "MultiChoice":
-		c.Type = schema.TypeStringArray
+		c.Type = arrow.ListOf(arrow.BinaryTypes.String)
 	case "Computed":
-		c.Type = schema.TypeString
+		c.Type = arrow.BinaryTypes.String
 	default:
 		logger.Warn().Str("type", field.TypeAsString).Int("kind", field.FieldTypeKind).Str("field_title", field.Title).Str("field_id", field.ID).Msg("unknown type, assuming JSON")
-		c.Type = schema.TypeString
+		c.Type = arrow.BinaryTypes.String
 	}
 
 	c.Name = util.NormalizeEntityName(field.InternalName)
@@ -184,9 +186,9 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 	return c
 }
 
-func typeFromPropName(prop string) schema.ValueType {
+func typeFromPropName(prop string) arrow.DataType {
 	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
-		return schema.TypeInt
+		return arrow.PrimitiveTypes.Int32
 	}
-	return schema.TypeString
+	return arrow.BinaryTypes.String
 }
