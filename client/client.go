@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cloudquery/plugin-pb-go/specs"
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
 	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
 	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
@@ -25,15 +24,17 @@ type Client struct {
 	search       *search.Search
 	contentTypes *ct.ContentTypesRollup
 
-	source specs.Source
-	opts   source.Options
+	source *Spec
+	opts   plugin.NewClientOptions
+
+	plugin.UnimplementedDestination
 }
 
-func (c *Client) ID() string {
-	return c.source.Name
-}
+// func (c *Client) ID() string {
+// 	return c.source.Name
+// }
 
-func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts source.Options) (schema.ClientMeta, error) {
+func NewClient(_ context.Context, logger zerolog.Logger, src []byte, opts plugin.NewClientOptions) (plugin.Client, error) {
 	spec, err := getSpec(src)
 	if err != nil {
 		return nil, err
@@ -53,7 +54,7 @@ func NewClient(_ context.Context, logger zerolog.Logger, src specs.Source, opts 
 		search:       search.NewSearch(sp, logger),
 		contentTypes: ct.NewContentTypesRollup(sp, logger),
 
-		source: src,
+		source: spec,
 		opts:   opts,
 	}
 

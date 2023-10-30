@@ -6,13 +6,14 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v4/message"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/gosip/api"
 	"github.com/thoas/go-funk"
 )
 
-func (s *Search) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+func (s *Search) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
 	opts := s.TablesMap[table.Name]
 
 	rowLimit := 500

@@ -8,13 +8,15 @@ import (
 	"strings"
 
 	"github.com/apache/arrow/go/v13/arrow"
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+
+	"github.com/cloudquery/plugin-sdk/v4/message"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/thoas/go-funk"
 )
 
-func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+func (l *Lists) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
 	opts := l.TablesMap[table.Name]
 	logger := l.logger.With().Str("table", table.Name).Logger()
 
@@ -34,7 +36,7 @@ func (l *Lists) Sync(ctx context.Context, metrics *source.TableClientMetrics, re
 
 	for {
 		if err != nil {
-			metrics.Errors++
+			options.Errors++
 			return fmt.Errorf("failed to get items: %w", err)
 		}
 

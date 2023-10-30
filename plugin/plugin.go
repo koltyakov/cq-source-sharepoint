@@ -3,24 +3,28 @@ package plugin
 import (
 	"context"
 
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/client"
 )
 
 var (
+	Name    = "cq-source-sharepoint"
+	Kind    = "source"
+	Team    = "koltyakov"
 	Version = "development"
 )
 
-func Plugin() *source.Plugin {
-	return source.NewPlugin(
-		"sharepoint",
+func Plugin() *plugin.Plugin {
+	return plugin.NewPlugin(
+		Name,
 		Version,
-		nil,
 		client.NewClient,
-		source.WithDynamicTableOption(getDynamicTables),
-		source.WithUnmanaged(),
-		source.WithNoInternalColumns(),
+		plugin.WithKind(Kind),
+		plugin.WithTeam(Team),
+		// source.WithDynamicTableOption(getDynamicTables),
+		// source.WithUnmanaged(),
+		// source.WithNoInternalColumns(),
 	)
 }
 

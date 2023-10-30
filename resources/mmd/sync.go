@@ -8,13 +8,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v4/message"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/thoas/go-funk"
 )
 
-func (m *MMD) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+func (m *MMD) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
 	opts := m.TablesMap[table.Name]
 
 	taxonomy := m.sp.Taxonomy()

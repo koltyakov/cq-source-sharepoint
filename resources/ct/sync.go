@@ -8,14 +8,16 @@ import (
 	"strings"
 
 	"github.com/apache/arrow/go/v13/arrow"
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+
+	"github.com/cloudquery/plugin-sdk/v4/message"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/thoas/go-funk"
 )
 
-func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+func (c *ContentTypesRollup) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
 	opts := c.TablesMap[table.Name]
 	logger := c.logger.With().Str("table", table.Name).Logger()
 
@@ -38,7 +40,7 @@ func (c *ContentTypesRollup) Sync(ctx context.Context, metrics *source.TableClie
 		// Iterate over all lists
 		for _, listID := range lists {
 			c.logger.Debug().Msgf("list sync: %s", listID)
-			if err := c.syncList(ctx, webURL, listID, metrics, res, table); err != nil {
+			if err := c.syncList(ctx, webURL, listID, options, res, table); err != nil {
 				return err
 			}
 		}
@@ -120,7 +122,7 @@ func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, err
 	return listIds, nil
 }
 
-func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
+func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
 	opts := c.TablesMap[table.Name]
 
 	web := c.getWeb(webURL)

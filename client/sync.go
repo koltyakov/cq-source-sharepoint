@@ -4,43 +4,48 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/cloudquery/plugin-sdk/v3/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v3/schema"
+	"github.com/cloudquery/plugin-sdk/v4/message"
+	"github.com/cloudquery/plugin-sdk/v4/plugin"
 )
 
-func (c *Client) Sync(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
-	for _, table := range c.Tables {
-		if metrics.TableClient[table.Name] == nil {
-			metrics.TableClient[table.Name] = make(map[string]*source.TableClientMetrics)
-			metrics.TableClient[table.Name][c.ID()] = &source.TableClientMetrics{}
-		}
-	}
+func (c *Client) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
+	// for _, table := range c.Tables {
+	// 	if metrics.TableClient[table.Name] == nil {
+	// 		metrics.TableClient[table.Name] = make(map[string]*source.TableClientMetrics)
+	// 		metrics.TableClient[table.Name][c.ID()] = &source.TableClientMetrics{}
+	// 	}
+	// }
 
-	if err := c.syncLists(ctx, metrics, res); err != nil {
+	if err := c.syncLists(ctx, options, res); err != nil {
 		return err
 	}
 
-	if err := c.syncMMD(ctx, metrics, res); err != nil {
+	if err := c.syncMMD(ctx, options, res); err != nil {
 		return err
 	}
 
-	if err := c.syncProfiles(ctx, metrics, res); err != nil {
+	if err := c.syncProfiles(ctx, options, res); err != nil {
 		return err
 	}
 
-	if err := c.syncSearch(ctx, metrics, res); err != nil {
+	if err := c.syncSearch(ctx, options, res); err != nil {
 		return err
 	}
 
-	return c.syncContentTypes(ctx, metrics, res)
+	return c.syncContentTypes(ctx, options, res)
+}
+
+func (*Client) Close(_ context.Context) error {
+	// ToDo: Add your client cleanup here
+	return nil
 }
 
 // Lists sync
-func (c *Client) syncLists(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
+func (c *Client) syncLists(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
 	for tableName := range c.lists.TablesMap {
 		table := c.Tables.Get(tableName)
-		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.lists.Sync(ctx, m, res, table); err != nil {
+		// m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.lists.Sync(ctx, options, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
@@ -48,11 +53,11 @@ func (c *Client) syncLists(ctx context.Context, metrics *source.Metrics, res cha
 }
 
 // MMD (Terms from TermSets) sync
-func (c *Client) syncMMD(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
+func (c *Client) syncMMD(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
 	for tableName := range c.mmd.TablesMap {
 		table := c.Tables.Get(tableName)
-		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.mmd.Sync(ctx, m, res, table); err != nil {
+		// m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.mmd.Sync(ctx, options, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
@@ -60,11 +65,11 @@ func (c *Client) syncMMD(ctx context.Context, metrics *source.Metrics, res chan<
 }
 
 // User profiles sync
-func (c *Client) syncProfiles(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
+func (c *Client) syncProfiles(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
 	for tableName := range c.profiles.TablesMap {
 		table := c.Tables.Get(tableName)
-		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.profiles.Sync(ctx, m, res, table); err != nil {
+		// m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.profiles.Sync(ctx, options, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
@@ -72,11 +77,11 @@ func (c *Client) syncProfiles(ctx context.Context, metrics *source.Metrics, res 
 }
 
 // Search queries sync
-func (c *Client) syncSearch(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
+func (c *Client) syncSearch(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
 	for tableName := range c.search.TablesMap {
 		table := c.Tables.Get(tableName)
-		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.search.Sync(ctx, m, res, table); err != nil {
+		// m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.search.Sync(ctx, options, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
@@ -84,11 +89,11 @@ func (c *Client) syncSearch(ctx context.Context, metrics *source.Metrics, res ch
 }
 
 // Content types rollup sync
-func (c *Client) syncContentTypes(ctx context.Context, metrics *source.Metrics, res chan<- *schema.Resource) error {
+func (c *Client) syncContentTypes(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage) error {
 	for tableName := range c.contentTypes.TablesMap {
 		table := c.Tables.Get(tableName)
-		m := metrics.TableClient[table.Name][c.ID()]
-		if err := c.contentTypes.Sync(ctx, m, res, table); err != nil {
+		// m := metrics.TableClient[table.Name][c.ID()]
+		if err := c.contentTypes.Sync(ctx, options, res, table); err != nil {
 			return fmt.Errorf("syncing table %s: %w", table.Name, err)
 		}
 	}
