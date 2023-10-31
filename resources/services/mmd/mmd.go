@@ -1,9 +1,11 @@
 package mmd
 
 import (
+	"context"
+	"fmt"
 	"strings"
 
-	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/apache/arrow/go/v14/arrow"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/cloudquery/plugin-sdk/v4/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -14,20 +16,12 @@ import (
 type MMD struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	ID   string
-	Spec Spec
 }
 
 func NewMMD(sp *api.SP, logger zerolog.Logger) *MMD {
 	return &MMD{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -62,10 +56,23 @@ func (m *MMD) GetDestTable(terSetID string, spec Spec) (*schema.Table, error) {
 		},
 	}
 
-	m.TablesMap[table.Name] = Model{
-		ID:   terSetID,
-		Spec: spec,
+	for i, col := range table.Columns {
+		prop := col.Description
+		valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+			value := getRespValByProp(resource.Item.(map[string]interface{}), prop)
+			if c.Type == arrow.BinaryTypes.String {
+				if value != nil {
+					value = fmt.Sprintf("%v", value)
+				}
+			}
+			resource.Set(c.Name, value)
+			return nil
+		}
+		col.Resolver = valueResolver
+		table.Columns[i] = col
 	}
+
+	table.Resolver = m.Resolver(terSetID, spec, table)
 
 	return table, nil
 }

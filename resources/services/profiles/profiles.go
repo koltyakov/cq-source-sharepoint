@@ -1,7 +1,10 @@
 package profiles
 
 import (
-	"github.com/apache/arrow/go/v13/arrow"
+	"context"
+	"fmt"
+
+	"github.com/apache/arrow/go/v14/arrow"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/cloudquery/plugin-sdk/v4/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -15,19 +18,12 @@ import (
 type Profiles struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	Spec Spec
 }
 
 func NewProfiles(sp *api.SP, logger zerolog.Logger) *Profiles {
 	return &Profiles{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -53,10 +49,25 @@ func (u *Profiles) GetDestTable(spec Spec) (*schema.Table, error) {
 			{Name: "path", Type: arrow.BinaryTypes.String, Description: "Path"},
 			{Name: "modified", Type: arrow.FixedWidthTypes.Timestamp_us, Description: "LastModifiedTime"},
 		},
+		Resolver: u.Resolver,
 	}
 
-	u.TablesMap[table.Name] = Model{
-		Spec: spec,
+	for i, col := range table.Columns {
+		prop := col.Description
+		valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+			value := getSearchCellValue(resource.Item.(*struct {
+				Cells []*api.TypedKeyValue `json:"Cells"`
+			}), prop)
+			if c.Type == arrow.BinaryTypes.String {
+				if value != nil {
+					value = fmt.Sprintf("%v", value)
+				}
+			}
+			resource.Set(c.Name, value)
+			return nil
+		}
+		col.Resolver = valueResolver
+		table.Columns[i] = col
 	}
 
 	return table, nil

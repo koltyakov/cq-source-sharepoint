@@ -5,7 +5,7 @@ Versioning is managed via git tags. Then a new version tag is pushed to the repo
 ## Set version
 
 ```bash
-git tag v1.7.2
+git tag v2.0.0.
 ```
 
 ### Push tag
@@ -17,6 +17,6 @@ git push --tags
 ### Delete tag
 
 ```bash
-git tag -d v1.7.2-test
-git push --delete origin v1.7.2-test
+git tag -d v2.0.0-test
+git push --delete origin v2.0.0-test
 ```

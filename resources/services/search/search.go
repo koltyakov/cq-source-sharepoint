@@ -1,7 +1,10 @@
 package search
 
 import (
-	"github.com/apache/arrow/go/v13/arrow"
+	"context"
+	"fmt"
+
+	"github.com/apache/arrow/go/v14/arrow"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
@@ -11,19 +14,12 @@ import (
 type Search struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	Spec Spec
 }
 
 func NewSearch(sp *api.SP, logger zerolog.Logger) *Search {
 	return &Search{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -70,14 +66,30 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 	table := &schema.Table{
 		Name: "sharepoint_search_" + tableName,
 		Columns: append([]schema.Column{
-			{Name: "id", Type: arrow.PrimitiveTypes.Int32, Description: "DocId", PrimaryKey: true},
+			{Name: "id", Type: arrow.PrimitiveTypes.Int64, Description: "DocId", PrimaryKey: true},
 			{Name: util.NormalizeEntityNameSnake(getFieldAlias("Title", spec.fieldsMapping)), Type: arrow.BinaryTypes.String, Description: "Title"},
 		}, columns...),
 	}
 
-	s.TablesMap[table.Name] = Model{
-		Spec: spec,
+	for i, col := range table.Columns {
+		prop := col.Description
+		valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+			value := getSearchCellValue(resource.Item.(*struct {
+				Cells []*api.TypedKeyValue `json:"Cells"`
+			}), prop)
+			if c.Type == arrow.BinaryTypes.String {
+				if value != nil {
+					value = fmt.Sprintf("%v", value)
+				}
+			}
+			resource.Set(c.Name, value)
+			return nil
+		}
+		col.Resolver = valueResolver
+		table.Columns[i] = col
 	}
+
+	table.Resolver = s.Resolver(spec, table)
 
 	return table, nil
 }

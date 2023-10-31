@@ -1,11 +1,12 @@
 package ct
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/apache/arrow/go/v14/arrow"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/cloudquery/plugin-sdk/v4/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -17,20 +18,12 @@ import (
 type ContentTypesRollup struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	ContentTypeID string
-	Spec          Spec
 }
 
 func NewContentTypesRollup(sp *api.SP, logger zerolog.Logger) *ContentTypesRollup {
 	return &ContentTypesRollup{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -58,18 +51,13 @@ func (c *ContentTypesRollup) GetDestTable(ctID string, spec Spec) (*schema.Table
 		Description: ctInfo.Description,
 	}
 
-	model := &Model{
-		ContentTypeID: ctInfo.ID,
-		Spec:          spec,
-	}
-
 	// ToDo: Rearchitect table construction logic
 	for _, prop := range spec.Select {
 		col := c.getDestCol(prop, tableName, ctInfo, spec)
 		table.Columns = append(table.Columns, col)
 	}
 
-	c.TablesMap[table.Name] = *model
+	table.Resolver = c.Resolver(ctInfo.ID, spec, table)
 
 	return table, nil
 }
@@ -93,18 +81,31 @@ func (c *ContentTypesRollup) getDestCol(prop string, tableName string, ctInfo *c
 		fieldAlias = a
 	}
 
+	valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+		value := util.GetRespValByProp(resource.Item.(map[string]interface{}), prop)
+		if c.Type == arrow.BinaryTypes.String {
+			if value != nil {
+				value = fmt.Sprintf("%v", value)
+			}
+		}
+		resource.Set(c.Name, value)
+		return nil
+	}
+
 	// Props is not presented in list's fields
 	if field == nil {
 		return schema.Column{
 			Name:        util.NormalizeEntityName(fieldAlias),
 			Description: prop,
 			Type:        c.typeFromPropName(prop),
+			Resolver:    valueResolver,
 		}
 	}
 
 	field.InternalName = fieldAlias
 	col := c.columnFromField(field, tableName)
 	col.Description = prop
+	col.Resolver = valueResolver
 
 	if prop == "UniqueId" {
 		col.PrimaryKey = true

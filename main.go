@@ -4,12 +4,13 @@ import (
 	"context"
 	"log"
 
+	"github.com/koltyakov/cq-source-sharepoint/resources/plugin"
+
 	"github.com/cloudquery/plugin-sdk/v4/serve"
-	"github.com/koltyakov/cq-source-sharepoint/plugin"
 )
 
 func main() {
-	if err := serve.Plugin(plugin.Plugin()).Serve(context.Background()); err != nil {
+	if err := serve.Plugin(plugin.NewPlugin()).Serve(context.Background()); err != nil {
 		log.Fatalf("failed to serve plugin: %v", err)
 	}
 }

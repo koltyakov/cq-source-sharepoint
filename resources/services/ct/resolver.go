@@ -4,49 +4,48 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"strings"
 
-	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/apache/arrow/go/v14/arrow"
 
-	"github.com/cloudquery/plugin-sdk/v4/message"
-	"github.com/cloudquery/plugin-sdk/v4/plugin"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
-	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
-	"github.com/thoas/go-funk"
 )
 
-func (c *ContentTypesRollup) Sync(ctx context.Context, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
-	opts := c.TablesMap[table.Name]
-	logger := c.logger.With().Str("table", table.Name).Logger()
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error
 
-	logger.Debug().Msgf("getting webs for %s", table.Name)
-	webUrls, err := c.getWebs(c.sp.ToURL())
-	if err != nil {
-		return err
-	}
-	logger.Debug().Msgf("webs found: %v", webUrls)
+func (c *ContentTypesRollup) Resolver(contentTypeID string, spec Spec, table *schema.Table) ResolverClosure {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+		logger := c.logger.With().Str("table", table.Name).Logger()
 
-	// Iterate over all webs
-	for _, webURL := range webUrls {
-		logger.Debug().Msgf("getting lists for %s", webURL)
-		lists, err := c.getLists(webURL, opts.ContentTypeID)
+		logger.Debug().Msgf("getting webs for %s", table.Name)
+
+		webUrls, err := c.getWebs(c.sp.ToURL())
 		if err != nil {
 			return err
 		}
-		logger.Debug().Msgf("lists with content type: %v", lists)
+		logger.Debug().Msgf("webs found: %v", webUrls)
 
-		// Iterate over all lists
-		for _, listID := range lists {
-			c.logger.Debug().Msgf("list sync: %s", listID)
-			if err := c.syncList(ctx, webURL, listID, options, res, table); err != nil {
+		// Iterate over all webs
+		for _, webURL := range webUrls {
+			logger.Debug().Msgf("getting lists for %s", webURL)
+			lists, err := c.getLists(webURL, contentTypeID)
+			if err != nil {
 				return err
 			}
-		}
-	}
+			logger.Debug().Msgf("lists with content type: %v", lists)
 
-	return nil
+			// Iterate over all lists
+			for _, listID := range lists {
+				c.logger.Debug().Msgf("list sync: %s", listID)
+				if err := c.syncList(ctx, webURL, listID, contentTypeID, res, table, spec); err != nil {
+					return err
+				}
+			}
+		}
+
+		return nil
+	}
 }
 
 func (c *ContentTypesRollup) getWeb(webURL string) *api.Web {
@@ -122,59 +121,38 @@ func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, err
 	return listIds, nil
 }
 
-func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, options plugin.SyncOptions, res chan<- message.SyncMessage, table *schema.Table) error {
-	opts := c.TablesMap[table.Name]
-
+func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, ctID string, res chan<- interface{}, table *schema.Table, spec Spec) error {
 	web := c.getWeb(webURL)
 	list := web.Lists().GetByID(listID)
 
 	// Content type is not applied as filter in query to support lists of any size
 	// it is used to filter results in memory after getting responses
 	items, err := list.Items().
-		Select(strings.Join(append(opts.Spec.Select, "ContentTypeId"), ",")).
-		Expand(strings.Join(opts.Spec.Expand, ",")).
+		Select(strings.Join(append(spec.Select, "ContentTypeId"), ",")).
+		Expand(strings.Join(spec.Expand, ",")).
 		Top(5000).
 		GetPaged()
 
 	for {
 		if err != nil {
-			metrics.Errors++
 			return fmt.Errorf("failed to get items: %w", err)
 		}
 
 		var itemList []map[string]any
 		if err := json.Unmarshal(items.Items.Normalized(), &itemList); err != nil {
-			metrics.Errors++
 			return err
 		}
 
 		for _, itemMap := range itemList {
 			// Filter by content type ID (skip items which content type is doesn't strart with base content type ID)
-			if !strings.HasPrefix(itemMap["ContentTypeId"].(string), opts.ContentTypeID) {
+			if !strings.HasPrefix(itemMap["ContentTypeId"].(string), ctID) {
 				continue
-			}
-
-			ks := funk.Keys(itemMap).([]string)
-			sort.Strings(ks)
-
-			colVals := make([]any, len(table.Columns))
-
-			for i, col := range table.Columns {
-				prop := col.Description
-				colVals[i] = util.GetRespValByProp(itemMap, prop)
-			}
-
-			resource, err := resourceFromValues(table, colVals)
-			if err != nil {
-				metrics.Errors++
-				return err
 			}
 
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
-			case res <- resource:
-				metrics.Resources++
+			case res <- itemMap:
 			}
 		}
 

@@ -1,11 +1,12 @@
 package lists
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/apache/arrow/go/v13/arrow"
+	"github.com/apache/arrow/go/v14/arrow"
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/cloudquery/plugin-sdk/v4/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
@@ -17,20 +18,12 @@ import (
 type Lists struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	URI  string
-	Spec Spec
 }
 
 func NewLists(sp *api.SP, logger zerolog.Logger) *Lists {
 	return &Lists{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -67,10 +60,6 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 	}
 
 	fieldsData := fields.Data()
-	model := &Model{
-		URI:  listURI,
-		Spec: spec,
-	}
 
 	// ToDo: Rearchitect table construction logic
 	for _, prop := range spec.Select {
@@ -78,7 +67,7 @@ func (l *Lists) GetDestTable(listURI string, spec Spec) (*schema.Table, error) {
 		table.Columns = append(table.Columns, col)
 	}
 
-	l.TablesMap[table.Name] = *model
+	table.Resolver = l.Resolver(listURI, spec, table)
 
 	return table, nil
 }
@@ -103,12 +92,24 @@ func (l *Lists) getDestCol(prop string, tableName string, spec Spec, fieldsData 
 		fieldAlias = a
 	}
 
+	valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+		value := util.GetRespValByProp(resource.Item.(map[string]interface{}), prop)
+		if c.Type == arrow.BinaryTypes.String {
+			if value != nil {
+				value = fmt.Sprintf("%v", value)
+			}
+		}
+		resource.Set(c.Name, value)
+		return nil
+	}
+
 	// Props is not presented in list's fields
 	if field == nil {
 		return schema.Column{
 			Name:        util.NormalizeEntityName(fieldAlias),
 			Description: prop,
 			Type:        typeFromPropName(prop),
+			Resolver:    valueResolver,
 		}
 	}
 
@@ -116,6 +117,7 @@ func (l *Lists) getDestCol(prop string, tableName string, spec Spec, fieldsData 
 	col := l.columnFromField(field, tableName)
 	col.PrimaryKey = prop == "ID" // ToDo: Decide on ID cunstruction logic: use ID/UniqueID/Path+ID
 	col.Description = prop
+	col.Resolver = valueResolver
 
 	return col
 }
