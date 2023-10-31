@@ -1,0 +1,104 @@
+kind: source
+spec:
+  name: "sharepoint"
+  registry: "grpc"
+  path: "localhost:7777"
+  version: "v1.0.0"
+  tables: ["*"]
+  spec:
+    auth:
+      strategy: "ondemand"
+      creds:
+        siteUrl: "https://spnode.sharepoint.com/sites/CloudQuery-sample"
+    lists:
+      _catalogs/users:
+        select:
+          - Title->name
+          - UserName
+          - FirstName
+          - LastName
+          - JobTitle
+          - Department
+          - EMail
+          - IsSiteAdmin
+          - Deleted
+        filter: "UserName ne null"
+        alias: "user"
+      Shared Documents:
+        select:
+          - FileLeafRef
+          - FileRef
+          - FileDirRef
+          - Author/Title
+          - File/Length
+        expand:
+          - Author
+          - File
+        alias: "document"
+      Lists/Managers:
+        select:
+          - Title
+        alias: "manager"
+      Lists/Customers:
+        select:
+          - Title
+          - RoutingNumber
+          - Region
+          - Revenue
+          - ManagerId
+        alias: "customer"
+      Lists/Orders:
+        select:
+          - Title
+          - CustomerId
+          - OrderNumber
+          - OrderDate
+          - Total
+        alias: "order"
+    content_types:
+      Task:
+        select:
+          - Title
+          - AssignedTo/Title
+          - TaskDueDate
+          - TaskStatus
+          - PercentComplete
+        expand:
+          - AssignedTo
+        alias: "task"
+    mmd:
+      8ed8c9ea-7052-4c1d-a4d7-b9c10bffea6f:
+        alias: "department"
+    profiles:
+      enabled: true
+    search:
+      media:
+        query_text: "media"
+        select_properties:
+          - Size
+          - Title
+          - ContentTypeId
+          - IsDocument
+          - FileType
+          - DocId
+          - SPWebUrl
+          - SiteId
+          - WebId
+          - ListId
+      profiles:
+        query_text: "*"
+        source_id: "b09a7990-05ea-4af9-81ef-edfab16c4e31"
+        trim_duplicates: false
+        select_properties:
+          - Title -> name
+  destinations:
+    - "sqlite"
+---
+kind: destination
+spec:
+  name: sqlite
+  path: cloudquery/sqlite
+  registry: cloudquery
+  version: "v2.4.15"
+  spec:
+    connection_string: ./debug/sp.db
