@@ -16,3 +16,7 @@ fmt:
 .PHONY: build
 build:
 	go build -o bin/cq-source-sharepoint -v
+
+.PHONY: package
+package:
+	go run main.go package --docs-dir docs -m @CHANGELOG.md v2.0.0 .
