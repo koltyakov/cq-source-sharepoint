@@ -1,6 +1,5 @@
 db/
 *.log
 .cq/
-db.sql
+sp.db
 .env
-db.sql-journal

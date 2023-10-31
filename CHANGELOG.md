@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.0 (2023-10-30)
+
+- Migrate to CloudQuery Plugin SDK v4
+
+## 1.8.0 (2023-04-29)
+
+- spctl utility allows interactive configuration of the plugin
+
+## 1.7.0 (2023-04-07)
+
+- Migrate to CloudQuery Plugin SDK v2
+
 ## 1.6.0 (2023-03-26)
 
 - Content Types based rollup

@@ -2,15 +2,18 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 )
+
+var Version = "development"
 
 func getPluginVersion() (string, error) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("GET", "https://api.github.com/repos/koltyakov/cq-source-sharepoint/releases/latest", nil)
 	if err != nil {
-		return pluginVersion, err
+		return Version, err
 	}
 
 	req.Header.Add("Accept", "application/vnd.github+json")
@@ -18,7 +21,7 @@ func getPluginVersion() (string, error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return pluginVersion, err
+		return Version, err
 	}
 
 	defer resp.Body.Close()
@@ -29,4 +32,9 @@ func getPluginVersion() (string, error) {
 	}
 
 	return data["tag_name"].(string), nil
+}
+
+func printVersion() {
+	pVer, _ := getPluginVersion()
+	fmt.Printf("spctl: %v, koltyakov/sharepoint (plugin): %s\n", Version, pVer)
 }

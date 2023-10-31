@@ -13,4 +13,4 @@ build:
 	cd .. && go build -o bin/cq-source-sharepoint -v
 
 clean:
-	rm db.sql cloudquery.log
+	rm sp.db cloudquery.log

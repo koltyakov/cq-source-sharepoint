@@ -1,11 +1,14 @@
 package ct
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
 
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"github.com/apache/arrow/go/v14/arrow"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
+	"github.com/cloudquery/plugin-sdk/v4/types"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
@@ -15,20 +18,12 @@ import (
 type ContentTypesRollup struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	ContentTypeID string
-	Spec          Spec
 }
 
 func NewContentTypesRollup(sp *api.SP, logger zerolog.Logger) *ContentTypesRollup {
 	return &ContentTypesRollup{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -56,18 +51,13 @@ func (c *ContentTypesRollup) GetDestTable(ctID string, spec Spec) (*schema.Table
 		Description: ctInfo.Description,
 	}
 
-	model := &Model{
-		ContentTypeID: ctInfo.ID,
-		Spec:          spec,
-	}
-
 	// ToDo: Rearchitect table construction logic
 	for _, prop := range spec.Select {
 		col := c.getDestCol(prop, tableName, ctInfo, spec)
 		table.Columns = append(table.Columns, col)
 	}
 
-	c.TablesMap[table.Name] = *model
+	table.Resolver = c.Resolver(ctInfo.ID, spec, table)
 
 	return table, nil
 }
@@ -91,22 +81,34 @@ func (c *ContentTypesRollup) getDestCol(prop string, tableName string, ctInfo *c
 		fieldAlias = a
 	}
 
+	valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+		value := util.GetRespValByProp(resource.Item.(map[string]any), prop)
+		if c.Type == arrow.BinaryTypes.String {
+			if value != nil {
+				value = fmt.Sprintf("%v", value)
+			}
+		}
+		return resource.Set(c.Name, value)
+	}
+
 	// Props is not presented in list's fields
 	if field == nil {
 		return schema.Column{
 			Name:        util.NormalizeEntityName(fieldAlias),
 			Description: prop,
 			Type:        c.typeFromPropName(prop),
+			Resolver:    valueResolver,
 		}
 	}
 
 	field.InternalName = fieldAlias
 	col := c.columnFromField(field, tableName)
 	col.Description = prop
+	col.Resolver = valueResolver
 
 	if prop == "UniqueId" {
-		col.CreationOptions.PrimaryKey = true
-		col.Type = schema.TypeUUID
+		col.PrimaryKey = true
+		col.Type = types.UUID
 	}
 
 	return col
@@ -151,33 +153,35 @@ func (c *ContentTypesRollup) columnFromField(field *api.FieldInfo, tableName str
 	}
 
 	switch field.TypeAsString {
-	case "Text", "Note", "ContentTypeId":
-		col.Type = schema.TypeString
+	case "ContentTypeId":
+		col.Type = arrow.BinaryTypes.String
+	case "Text", "Note":
+		col.Type = arrow.BinaryTypes.LargeString
 	case "Integer", "Counter":
-		col.Type = schema.TypeInt
+		col.Type = arrow.PrimitiveTypes.Int32
 	case "Currency":
-		col.Type = schema.TypeFloat
+		col.Type = arrow.PrimitiveTypes.Float32
 	case "Number":
-		col.Type = schema.TypeFloat
+		col.Type = arrow.PrimitiveTypes.Float32
 	case "DateTime":
-		col.Type = schema.TypeTimestamp
+		col.Type = arrow.FixedWidthTypes.Timestamp_us
 	case "Boolean", "Attachments":
-		col.Type = schema.TypeBool
+		col.Type = arrow.FixedWidthTypes.Boolean
 	case "Guid":
-		col.Type = schema.TypeUUID
+		col.Type = types.UUID
 	case "Lookup", "User":
-		col.Type = schema.TypeInt
+		col.Type = arrow.PrimitiveTypes.Int32
 	case "LookupMulti", "UserMulti":
-		col.Type = schema.TypeIntArray
+		col.Type = arrow.ListOf(arrow.PrimitiveTypes.Int32)
 	case "Choice":
-		col.Type = schema.TypeString
+		col.Type = arrow.BinaryTypes.String
 	case "MultiChoice":
-		col.Type = schema.TypeStringArray
+		col.Type = arrow.ListOf(arrow.BinaryTypes.String)
 	case "Computed":
-		col.Type = schema.TypeString
+		col.Type = arrow.BinaryTypes.String
 	default:
 		logger.Warn().Str("type", field.TypeAsString).Int("kind", field.FieldTypeKind).Str("field_title", field.Title).Str("field_id", field.ID).Msg("unknown type, assuming JSON")
-		col.Type = schema.TypeString
+		col.Type = arrow.BinaryTypes.String
 	}
 
 	col.Name = util.NormalizeEntityName(field.InternalName)
@@ -185,20 +189,20 @@ func (c *ContentTypesRollup) columnFromField(field *api.FieldInfo, tableName str
 	return col
 }
 
-func (*ContentTypesRollup) typeFromPropName(prop string) schema.ValueType {
+func (*ContentTypesRollup) typeFromPropName(prop string) arrow.DataType {
 	if strings.HasSuffix(prop, "/Id") && prop != "ParentList/Id" {
-		return schema.TypeInt
+		return arrow.PrimitiveTypes.Int32
 	}
 	switch prop {
 	case "ID", "Id", "AuthorId", "EditorId":
-		return schema.TypeInt
+		return arrow.PrimitiveTypes.Int32
 	case "ParentList/Id":
-		return schema.TypeUUID
+		return types.UUID
 	case "ParentList/ParentWebUrl":
-		return schema.TypeString
+		return arrow.BinaryTypes.String
 	case "Created", "Modified":
-		return schema.TypeTimestamp
+		return arrow.FixedWidthTypes.Timestamp_us
 	default:
-		return schema.TypeString
+		return arrow.BinaryTypes.String
 	}
 }

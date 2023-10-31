@@ -1,7 +1,11 @@
 package search
 
 import (
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"context"
+	"fmt"
+
+	"github.com/apache/arrow/go/v14/arrow"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 	"github.com/koltyakov/gosip/api"
 	"github.com/rs/zerolog"
@@ -10,19 +14,12 @@ import (
 type Search struct {
 	sp     *api.SP
 	logger zerolog.Logger
-
-	TablesMap map[string]Model // normalized table name to table metadata (map[CQ Table Name]Model)
-}
-
-type Model struct {
-	Spec Spec
 }
 
 func NewSearch(sp *api.SP, logger zerolog.Logger) *Search {
 	return &Search{
-		sp:        sp,
-		logger:    logger,
-		TablesMap: map[string]Model{},
+		sp:     sp,
+		logger: logger,
 	}
 }
 
@@ -37,21 +34,22 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 	columns := []schema.Column{}
 	ignoreFields := []string{"DocId", "Title"}
 	for _, prop := range spec.SelectProperties {
-		fieldType := schema.TypeString
+		var fieldType arrow.DataType = arrow.BinaryTypes.String
 		for _, p := range ss {
 			if p.Key == prop {
 				switch p.ValueType {
 				case "Edm.String":
-					fieldType = schema.TypeString
+					fieldType = arrow.BinaryTypes.String
 				case "Edm.Int32":
+					fieldType = arrow.PrimitiveTypes.Int32
 				case "Edm.Int64":
-					fieldType = schema.TypeInt
+					fieldType = arrow.PrimitiveTypes.Int64
 				case "Edm.Double":
-					fieldType = schema.TypeFloat
+					fieldType = arrow.PrimitiveTypes.Float32
 				case "Edm.Boolean":
-					fieldType = schema.TypeBool
+					fieldType = arrow.FixedWidthTypes.Boolean
 				case "Edm.DateTime":
-					fieldType = schema.TypeTimestamp
+					fieldType = arrow.FixedWidthTypes.Timestamp_us
 				}
 			}
 		}
@@ -68,14 +66,29 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 	table := &schema.Table{
 		Name: "sharepoint_search_" + tableName,
 		Columns: append([]schema.Column{
-			{Name: "id", Type: schema.TypeInt, Description: "DocId", CreationOptions: schema.ColumnCreationOptions{PrimaryKey: true}},
-			{Name: util.NormalizeEntityNameSnake(getFieldAlias("Title", spec.fieldsMapping)), Type: schema.TypeString, Description: "Title"},
+			{Name: "id", Type: arrow.PrimitiveTypes.Int64, Description: "DocId", PrimaryKey: true},
+			{Name: util.NormalizeEntityNameSnake(getFieldAlias("Title", spec.fieldsMapping)), Type: arrow.BinaryTypes.String, Description: "Title"},
 		}, columns...),
 	}
 
-	s.TablesMap[table.Name] = Model{
-		Spec: spec,
+	for i, col := range table.Columns {
+		prop := col.Description
+		valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
+			value := getSearchCellValue(resource.Item.(*struct {
+				Cells []*api.TypedKeyValue `json:"Cells"`
+			}), prop)
+			if c.Type == arrow.BinaryTypes.String {
+				if value != nil {
+					value = fmt.Sprintf("%v", value)
+				}
+			}
+			return resource.Set(c.Name, value)
+		}
+		col.Resolver = valueResolver
+		table.Columns[i] = col
 	}
+
+	table.Resolver = s.Resolver(spec, table)
 
 	return table, nil
 }

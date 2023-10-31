@@ -1,15 +1,15 @@
-package client
+package plugin
 
 import (
+	"encoding/json"
 	"fmt"
 
-	"github.com/cloudquery/plugin-sdk/v2/specs"
 	"github.com/koltyakov/cq-source-sharepoint/resources/auth"
-	"github.com/koltyakov/cq-source-sharepoint/resources/ct"
-	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
-	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
-	"github.com/koltyakov/cq-source-sharepoint/resources/profiles"
-	"github.com/koltyakov/cq-source-sharepoint/resources/search"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/ct"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/lists"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/mmd"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/profiles"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/search"
 )
 
 // Spec is the configuration for a SharePoint source
@@ -203,10 +203,10 @@ func (s *Spec) validateContentTypes() error {
 }
 
 // getSpec unmarshals and validates the spec
-func getSpec(src specs.Source) (*Spec, error) {
+func getSpec(src []byte) (*Spec, error) {
 	var spec *Spec
 
-	if err := src.UnmarshalSpec(&spec); err != nil {
+	if err := json.Unmarshal(src, &spec); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal plugin spec: %w", err)
 	}
 

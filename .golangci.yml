@@ -20,11 +20,9 @@ linters-settings:
   dupl:
     # tokens count to trigger issue, 150 by default
     threshold: 500
-
   misspell:
     ignore-words:
       - hdinsight
-
   revive:
     enable-all-rules: true
     rules:
@@ -57,7 +55,7 @@ linters-settings:
       - name: exported
         disabled: false
         arguments:
-          - 'disableStutteringCheck'
+          - "disableStutteringCheck"
       - name: unused-parameter
         disabled: true
       - name: confusing-naming
@@ -68,19 +66,20 @@ linters-settings:
         disabled: true
       - name: nested-structs
         disabled: true
+      - name: unchecked-type-assertion
+        disabled: true
 
   gofmt:
     rewrite-rules:
-      - pattern:     'interface{}'
-        replacement: 'any'
-      - pattern:     'a[b:len(a)]'
-        replacement: 'a[b:]'
+      - pattern: "interface{}"
+        replacement: "any"
+      - pattern: "a[b:len(a)]"
+        replacement: "a[b:]"
 
 linters:
   enable:
     - asciicheck
     - bodyclose
-    - depguard
     - dupl
     - errcheck
     - gocritic

@@ -1,8 +1,12 @@
 before:
   hooks:
     - go mod download
+
 builds:
-  - flags:
+  # Build main plugin
+  - id: plugin
+    binary: cq-source-sharepoint
+    flags:
       - -buildmode=exe
     env:
       - CGO_ENABLED=0
@@ -19,11 +23,37 @@ builds:
     ignore:
       - goos: windows
         goarch: arm64
+
+  # Build spctl (CLI)
+  - id: spctl
+    main: ./cmd/spctl/
+    binary: spctl
+    ldflags:
+      - -s -w -X main.Version={{.Version}}
+    goos:
+      - windows
+      - linux
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+
 archives:
-  - name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+  - id: plugin
+    builds: [plugin]
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
     format: zip
+  - id: spctl
+    builds: [spctl]
+    name_template: "{{ .Binary }}_{{ .Os }}_{{ .Arch }}"
+    format: zip
+
 checksum:
   name_template: "checksums.txt"
+
 changelog:
   sort: asc
   filters:

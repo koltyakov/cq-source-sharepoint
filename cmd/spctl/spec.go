@@ -37,7 +37,8 @@ spec:
   registry: ` + s.Registry + `
   path: ` + s.Path + `
   version: ` + s.Version + `
-  destination: ["` + strings.Join(s.Destinations, `", "`) + `"]
+  destinations: ["` + strings.Join(s.Destinations, `", "`) + `"]
+	tables: ["*"]
   spec:
 `
 

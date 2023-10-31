@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/koltyakov/cq-source-sharepoint/resources/lists"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/lists"
 	"github.com/koltyakov/gosip/api"
 )
 

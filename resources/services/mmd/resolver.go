@@ -3,63 +3,32 @@ package mmd
 import (
 	"context"
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/cloudquery/plugin-sdk/v2/plugins/source"
-	"github.com/cloudquery/plugin-sdk/v2/schema"
+	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
-	"github.com/thoas/go-funk"
 )
 
-func (m *MMD) Sync(ctx context.Context, metrics *source.TableClientMetrics, res chan<- *schema.Resource, table *schema.Table) error {
-	opts := m.TablesMap[table.Name]
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error
 
-	taxonomy := m.sp.Taxonomy()
-	terms, err := taxonomy.Stores().Default().Sets().GetByID(opts.ID).GetAllTerms()
-	if err != nil {
-		metrics.Errors++
-		return fmt.Errorf("failed to get items: %w", err)
-	}
-
-	for _, itemMap := range terms {
-		ks := funk.Keys(itemMap).([]string)
-		sort.Strings(ks)
-
-		colVals := make([]any, len(table.Columns))
-
-		for i, col := range table.Columns {
-			prop := col.Description
-			colVals[i] = getRespValByProp(itemMap, prop)
-		}
-
-		resource, err := resourceFromValues(table, colVals)
+func (m *MMD) Resolver(terSetID string, spec Spec, table *schema.Table) ResolverClosure {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
+		taxonomy := m.sp.Taxonomy()
+		terms, err := taxonomy.Stores().Default().Sets().GetByID(terSetID).GetAllTerms()
 		if err != nil {
-			metrics.Errors++
-			return err
+			return fmt.Errorf("failed to get items: %w", err)
 		}
 
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
-		case res <- resource:
-			metrics.Resources++
+		case res <- terms:
 		}
-	}
 
-	return nil
-}
-
-func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, error) {
-	resource := schema.NewResourceData(table, nil, values)
-	for i, col := range table.Columns {
-		if err := resource.Set(col.Name, values[i]); err != nil {
-			return nil, err
-		}
+		return nil
 	}
-	return resource, nil
 }
 
 func getRespValByProp(resp map[string]any, prop string) any {
