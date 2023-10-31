@@ -93,14 +93,13 @@ func (l *Lists) getDestCol(prop string, tableName string, spec Spec, fieldsData 
 	}
 
 	valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
-		value := util.GetRespValByProp(resource.Item.(map[string]interface{}), prop)
+		value := util.GetRespValByProp(resource.Item.(map[string]any), prop)
 		if c.Type == arrow.BinaryTypes.String {
 			if value != nil {
 				value = fmt.Sprintf("%v", value)
 			}
 		}
-		resource.Set(c.Name, value)
-		return nil
+		return resource.Set(c.Name, value)
 	}
 
 	// Props is not presented in list's fields

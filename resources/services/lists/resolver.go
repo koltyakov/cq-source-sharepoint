@@ -9,10 +9,10 @@ import (
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 )
 
-type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error
 
 func (l *Lists) Resolver(listURI string, spec Spec, table *schema.Table) ResolverClosure {
-	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
 		logger := l.logger.With().Str("table", table.Name).Logger()
 
 		logger.Debug().Strs("cols", spec.Select).Msg("selecting columns from list")

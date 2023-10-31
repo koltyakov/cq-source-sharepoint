@@ -32,7 +32,7 @@ func NewPlugin() *plugin.Plugin {
 	return plugin.NewPlugin(Name, Version, NewClient, plugin.WithKind(Kind), plugin.WithTeam(Team))
 }
 
-func (p *Plugin) ID() string {
+func (*Plugin) ID() string {
 	return Name
 }
 

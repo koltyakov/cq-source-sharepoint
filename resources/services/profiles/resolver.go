@@ -9,7 +9,7 @@ import (
 	"github.com/koltyakov/gosip/api"
 )
 
-func (u *Profiles) Resolver(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+func (u *Profiles) Resolver(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
 	rowLimit := 500
 	startRow := 0
 

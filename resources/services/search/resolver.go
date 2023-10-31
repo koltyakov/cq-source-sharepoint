@@ -9,10 +9,10 @@ import (
 	"github.com/koltyakov/gosip/api"
 )
 
-type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error
 
 func (s *Search) Resolver(spec Spec, table *schema.Table) ResolverClosure {
-	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
 		rowLimit := 500
 		startRow := 0
 
@@ -65,14 +65,4 @@ func getSearchCellValue(row *struct {
 		}
 	}
 	return nil
-}
-
-func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, error) {
-	resource := schema.NewResourceData(table, nil, values)
-	for i, col := range table.Columns {
-		if err := resource.Set(col.Name, values[i]); err != nil {
-			return nil, err
-		}
-	}
-	return resource, nil
 }

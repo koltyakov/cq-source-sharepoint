@@ -11,10 +11,10 @@ import (
 	"github.com/koltyakov/cq-source-sharepoint/internal/util"
 )
 
-type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error
 
 func (m *MMD) Resolver(terSetID string, spec Spec, table *schema.Table) ResolverClosure {
-	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
 		taxonomy := m.sp.Taxonomy()
 		terms, err := taxonomy.Stores().Default().Sets().GetByID(terSetID).GetAllTerms()
 		if err != nil {

@@ -63,8 +63,7 @@ func (u *Profiles) GetDestTable(spec Spec) (*schema.Table, error) {
 					value = fmt.Sprintf("%v", value)
 				}
 			}
-			resource.Set(c.Name, value)
-			return nil
+			return resource.Set(c.Name, value)
 		}
 		col.Resolver = valueResolver
 		table.Columns[i] = col

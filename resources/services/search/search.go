@@ -82,8 +82,7 @@ func (s *Search) GetDestTable(searchName string, spec Spec) (*schema.Table, erro
 					value = fmt.Sprintf("%v", value)
 				}
 			}
-			resource.Set(c.Name, value)
-			return nil
+			return resource.Set(c.Name, value)
 		}
 		col.Resolver = valueResolver
 		table.Columns[i] = col

@@ -59,14 +59,13 @@ func (m *MMD) GetDestTable(terSetID string, spec Spec) (*schema.Table, error) {
 	for i, col := range table.Columns {
 		prop := col.Description
 		valueResolver := func(ctx context.Context, meta schema.ClientMeta, resource *schema.Resource, c schema.Column) error {
-			value := getRespValByProp(resource.Item.(map[string]interface{}), prop)
+			value := getRespValByProp(resource.Item.(map[string]any), prop)
 			if c.Type == arrow.BinaryTypes.String {
 				if value != nil {
 					value = fmt.Sprintf("%v", value)
 				}
 			}
-			resource.Set(c.Name, value)
-			return nil
+			return resource.Set(c.Name, value)
 		}
 		col.Resolver = valueResolver
 		table.Columns[i] = col

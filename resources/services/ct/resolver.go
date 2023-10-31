@@ -6,16 +6,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/apache/arrow/go/v14/arrow"
-
 	"github.com/cloudquery/plugin-sdk/v4/schema"
 	"github.com/koltyakov/gosip/api"
 )
 
-type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error
+type ResolverClosure = func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error
 
 func (c *ContentTypesRollup) Resolver(contentTypeID string, spec Spec, table *schema.Table) ResolverClosure {
-	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- interface{}) error {
+	return func(ctx context.Context, meta schema.ClientMeta, parent *schema.Resource, res chan<- any) error {
 		logger := c.logger.With().Str("table", table.Name).Logger()
 
 		logger.Debug().Msgf("getting webs for %s", table.Name)
@@ -38,7 +36,7 @@ func (c *ContentTypesRollup) Resolver(contentTypeID string, spec Spec, table *sc
 			// Iterate over all lists
 			for _, listID := range lists {
 				c.logger.Debug().Msgf("list sync: %s", listID)
-				if err := c.syncList(ctx, webURL, listID, contentTypeID, res, table, spec); err != nil {
+				if err := c.syncList(ctx, webURL, listID, contentTypeID, res, spec); err != nil {
 					return err
 				}
 			}
@@ -121,7 +119,7 @@ func (c *ContentTypesRollup) getLists(webURL string, ctID string) ([]string, err
 	return listIds, nil
 }
 
-func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, ctID string, res chan<- interface{}, table *schema.Table, spec Spec) error {
+func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID string, ctID string, res chan<- any, spec Spec) error {
 	web := c.getWeb(webURL)
 	list := web.Lists().GetByID(listID)
 
@@ -163,19 +161,4 @@ func (c *ContentTypesRollup) syncList(ctx context.Context, webURL string, listID
 	}
 
 	return nil
-}
-
-func resourceFromValues(table *schema.Table, values []any) (*schema.Resource, error) {
-	resource := schema.NewResourceData(table, nil, values)
-	for i, col := range table.Columns {
-		if col.Type == arrow.BinaryTypes.String {
-			if values[i] != nil {
-				values[i] = fmt.Sprintf("%v", values[i])
-			}
-		}
-		if err := resource.Set(col.Name, values[i]); err != nil {
-			return nil, err
-		}
-	}
-	return resource, nil
 }
