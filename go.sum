@@ -46,6 +46,8 @@ github.com/andybalholm/brotli v1.0.6 h1:Yf9fFpf49Zrxb9NlQaluyE92/+X7UVHlhMNJN2sx
 github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/apache/arrow/go/v13 v13.0.0 h1:kELrvDQuKZo8csdWYqBQfyi431x6Zs/YJTEgUuSVcWk=
 github.com/apache/arrow/go/v13 v13.0.0/go.mod h1:W69eByFNO0ZR30q1/7Sr9d83zcVZmF2MiP3fFYAWJOc=
+github.com/apache/arrow/go/v14 v14.0.0-20231030205031-cb11e44d878f h1:xeCLQ5m6xcPRO/yGzfbg1/VDdZvhVK7Z3+nez4DGwXM=
+github.com/apache/arrow/go/v14 v14.0.0-20231030205031-cb11e44d878f/go.mod h1:TqWp9yvMb9yZSxFNiij6cmZefm+1jw3oZU0L0w9lT7E=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0 h1:axGnT1gRIfimI7gJifB699GoE/oq+F2MU7Dml6nw9rQ=
 github.com/apapsch/go-jsonmerge/v2 v2.0.0/go.mod h1:lvDnEdqiQrp0O42VQGgmlKpxL1AP2+08jFMw88y4klk=
 github.com/aymerick/douceur v0.2.0 h1:Mv+mAeH1Q+n9Fr+oyamOlAkUNPWPlA8PPGR0QAaYuPk=
@@ -71,8 +73,6 @@ github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d h1:77cEq6EriyTZ
 github.com/chenzhuoyu/base64x v0.0.0-20230717121745-296ad89f973d/go.mod h1:8EPpVsBuRksnlj1mLy4AWzRNQYxauNi62uWcE3to6eA=
 github.com/chenzhuoyu/iasm v0.9.0 h1:9fhXjVzq5hUy2gkhhgHl95zG2cEAhw9OSGs8toWWAwo=
 github.com/chenzhuoyu/iasm v0.9.0/go.mod h1:Xjy2NpN3h7aUqeqM+woSuuvxmIe6+DDsiNLIrkAmYog=
-github.com/cloudquery/arrow/go/v14 v14.0.0-20230904001200-cd3d4114faa0 h1:P9cuGMXdyKbrfEWlTJffmJGgcW6drxGoMhLKxU1s7C4=
-github.com/cloudquery/arrow/go/v14 v14.0.0-20230904001200-cd3d4114faa0/go.mod h1:QQ18IZU2Y3BFqHtF2HyvrjEEmk8TyzzmXgUVjep3bCw=
 github.com/cloudquery/cloudquery-api-go v1.4.2 h1:mGSYf+GVXW3FF8YCYer1Cf0fwtBuTMEEiIDozm19TQQ=
 github.com/cloudquery/cloudquery-api-go v1.4.2/go.mod h1:03fojQg0UpdgqXZ9tzZ5gF5CPad/F0sok66bsX6u4RA=
 github.com/cloudquery/plugin-pb-go v1.13.1 h1:UR07rJgiExsY6TSDNvSHyaYsZl/QSIK62I0OBttxf9w=
