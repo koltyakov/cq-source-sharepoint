@@ -18,5 +18,5 @@ build:
 	go build -o bin/cq-source-sharepoint -v
 
 .PHONY: package
-package:
-	go run main.go package --docs-dir docs -m @CHANGELOG.md v2.0.0 .
+package: # before using it, craft separate /docs folder and place the command to release pipeline
+	go run main.go package --docs-dir docs -m @CHANGELOG.md $(git describe --tags --abbrev=0) .
