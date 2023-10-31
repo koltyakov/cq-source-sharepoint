@@ -1,6 +1,8 @@
 # cq-source-sharepoint
 
-[CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin. To sync SharePoint data to any database destination.
+<!-- ![Downloads](https://img.shields.io/github/downloads/koltyakov/cq-source-sharepoint/total.svg) -->
+
+[CloudQuery](https://github.com/cloudquery/cloudquery) SharePoint Source community plugin.
 
 <p float="left">
   <img height="40px" src="./assets/cq.svg" />

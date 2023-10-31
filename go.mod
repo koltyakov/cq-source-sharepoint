@@ -6,7 +6,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/apache/arrow/go/v14 v14.0.0-20231030205031-cb11e44d878f
 	github.com/brianvoe/gofakeit/v6 v6.24.0
-	github.com/cloudquery/plugin-sdk/v4 v4.17.0
+	github.com/cloudquery/plugin-sdk/v4 v4.17.1
 	github.com/google/uuid v1.4.0
 	github.com/koltyakov/gosip v0.0.0-20231003001958-007c8072d71c
 	github.com/koltyakov/gosip-sandbox v0.0.0-20230410140555-1211f873b91c
