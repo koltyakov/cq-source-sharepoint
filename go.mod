@@ -16,9 +16,6 @@ require (
 	golang.org/x/sync v0.4.0
 )
 
-// ToDo: remove once the changes are merged to upstream
-replace github.com/apache/arrow/go/v14 => github.com/cloudquery/arrow/go/v14 v14.0.0-20230904001200-cd3d4114faa0
-
 require (
 	github.com/Azure/go-autorest v14.2.0+incompatible // indirect
 	github.com/Azure/go-autorest/autorest v0.11.29 // indirect
