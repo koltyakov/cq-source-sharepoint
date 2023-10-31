@@ -3,4 +3,3 @@ db/
 .cq/
 sp.db
 .env
-db.sql-journal

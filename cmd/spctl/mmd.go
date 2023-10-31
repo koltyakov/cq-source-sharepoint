@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/koltyakov/cq-source-sharepoint/resources/mmd"
+	"github.com/koltyakov/cq-source-sharepoint/resources/services/mmd"
 	"github.com/koltyakov/gosip/api"
 )
 
