@@ -2,6 +2,6 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v2.2.0"
+  version: "v2.4.15"
   spec:
     connection_string: ./sp.db
