@@ -38,7 +38,7 @@ spec:
   path: ` + s.Path + `
   version: ` + s.Version + `
   destinations: ["` + strings.Join(s.Destinations, `", "`) + `"]
-	tables: ["*"]
+  tables: ["*"]
   spec:
 `
 
