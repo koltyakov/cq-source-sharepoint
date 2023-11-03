@@ -179,6 +179,8 @@ func (c *ContentTypesRollup) columnFromField(field *api.FieldInfo, tableName str
 		col.Type = arrow.ListOf(arrow.BinaryTypes.String)
 	case "Computed":
 		col.Type = arrow.BinaryTypes.String
+	case "File":
+		col.Type = arrow.BinaryTypes.String
 	default:
 		logger.Warn().Str("type", field.TypeAsString).Int("kind", field.FieldTypeKind).Str("field_title", field.Title).Str("field_id", field.ID).Msg("unknown type, assuming JSON")
 		col.Type = arrow.BinaryTypes.String

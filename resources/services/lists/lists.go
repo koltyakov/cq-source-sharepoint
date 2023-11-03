@@ -177,6 +177,8 @@ func (l *Lists) columnFromField(field *api.FieldInfo, tableName string) schema.C
 		c.Type = arrow.ListOf(arrow.BinaryTypes.String)
 	case "Computed":
 		c.Type = arrow.BinaryTypes.String
+	case "File":
+		c.Type = arrow.BinaryTypes.String
 	default:
 		logger.Warn().Str("type", field.TypeAsString).Int("kind", field.FieldTypeKind).Str("field_title", field.Title).Str("field_id", field.ID).Msg("unknown type, assuming JSON")
 		c.Type = arrow.BinaryTypes.String
