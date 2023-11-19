@@ -1,5 +1,3 @@
-# Configuration: Content Types based rollup
-
 Content Types based rollup allows to fetch data from multiple lists or document libraries based on the Content Type configuration.
 
 All items based on the parent content type are fetched from all lists and subwebs below the context site URL.

@@ -1,5 +1,3 @@
-# SharePoint Source Plugin Authentication Options
-
 ```yaml
 # sharepoint.yml
 # ...

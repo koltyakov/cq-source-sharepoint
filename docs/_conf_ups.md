@@ -1,5 +1,3 @@
-# Configuration: User Profiles
-
 User Profiles are fetched via Search API, so the search should be configured in the farm.
 
 Search drived data source can be user only with user associated authentication strategies. E.g. it won't work with `addin` strategy.

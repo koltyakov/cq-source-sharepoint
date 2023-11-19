@@ -1,5 +1,3 @@
-# Configuration: Lists
-
 SharePoint lists is the main artifact for customizable data storage in SharePoint.
 
 Lists fetching configuration follows same naming as SharePoint REST API.

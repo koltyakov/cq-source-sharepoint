@@ -14,11 +14,14 @@ The SharePoint Source plugin allows you to fetch data from SharePoint and load i
 - Lists and Document Libraries data fetching
 - Content Types based rollup
 - User Information List data fetching
-- Search Query data source
-- User Profiles data source
-- Managed Metadata data source
-- SharePoint Online support
-- SharePoint On-Premise support
+- Search Query datasource
+- User Profiles datasource
+- Managed Metadata datasource
+
+## Supported platforms
+
+- SharePoint Online
+- SharePoint On-Premise
 
 ![demo](https://github.com/koltyakov/cq-source-sharepoint/blob/main/assets/demo.gif?raw=true)
 
@@ -30,7 +33,7 @@ spec:
   name: sharepoint
   registry: cloudquery
   path: koltyakov/sharepoint
-  version: "VERSION_SOURCE_SHAREPOINT"
+  version: "VERSION_SOURCE_KOLTYAKOV_SHAREPOINT"
   destinations: ["postgresql"]
   tables: ["*"]
   spec:

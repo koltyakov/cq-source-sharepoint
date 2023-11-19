@@ -1,6 +1,4 @@
-# Configuration: Search queries
-
-Search drived data source can be user only with user associated authentication strategies. E.g. it won't work with `addin` strategy.
+Search-drived datasource can be user only with user associated authentication strategies. E.g. it won't work with `addin` strategy.
 
 ```yaml
 # sharepoint.yml

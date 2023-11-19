@@ -1,14 +1,16 @@
-# Getting started guide
+---
+hub-title: Getting Started
+---
 
-## Install CloudQuery
+### Install CloudQuery
 
 Follow [quickstart instructions](https://www.cloudquery.io/docs/quickstart/).
 
-## Source sample data
+### Source sample data
 
 Provision and seed some sample data. [See more](https://github.com/koltyakov/cq-source-sharepoint/blob/main/cmd/seed/README.md). Which satisfy the schema below.
 
-## Auth configuration
+### Setup authentication
 
 ```bash
 # .env or env vars export
@@ -18,7 +20,7 @@ SP_SITE_URL=https://contoso.sharepoint.com/sites/site
 
 or use "ondeman" auth.
 
-## Source configuration
+### Source configuration
 
 ```yaml
 # sharepoint.yml
@@ -27,7 +29,7 @@ spec:
   name: sharepoint
   registry: cloudquery
   path: "koltyakov/sharepoint"
-  version: "VERSION_SOURCE_SHAREPOINT"
+  version: "VERSION_SOURCE_KOLTYAKOV_SHAREPOINT"
   destinations: ["sqlite"]
   tables: ["*"]
   spec:
@@ -81,7 +83,7 @@ spec:
         alias: "order"
 ```
 
-## Destination configuration
+### Destination configuration
 
 For the sake of simplicity, we'll use SQLite destination.
 
@@ -91,12 +93,12 @@ kind: destination
 spec:
   name: sqlite
   path: cloudquery/sqlite
-  version: "v2.4.15"
+  version: "VERSION_DESTINATION_SQLITE"
   spec:
     connection_string: ./sp.db
 ```
 
-## Run CloudQuery
+### Run CloudQuery
 
 ```bash
 # With auth environment variables exported

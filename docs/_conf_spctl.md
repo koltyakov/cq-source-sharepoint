@@ -1,5 +1,3 @@
-### Interactive schema builder
-
 The plugin ships with configuration utility `spctl`.
 
 ![](https://github.com/koltyakov/cq-source-sharepoint/blob/main/assets/spctl.gif?raw=true)
