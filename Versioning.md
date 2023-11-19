@@ -20,3 +20,30 @@ git push --tags
 git tag -d v2.0.0-test
 git push --delete origin v2.0.0-test
 ```
+
+## Publish
+
+Make sure you logged in to CloudQuery Hub and switched to the right team:
+
+```bash
+cloudquery login
+cloudquery switch koltyakov
+```
+
+Package the plugin:
+
+```bash
+go run main.go package --docs-dir docs -m @CHANGELOG.md $(git describe --tags --abbrev=0) .
+```
+
+Publish the plugin (draft):
+
+```bash
+cloudquery plugin publish
+```
+
+Publish the plugin (release):
+
+```bash
+cloudquery plugin publish --finalize
+```

@@ -4,10 +4,12 @@
   "configuration": "Configuration",
   "spctl": "spctl: config CLI",
   "conf-ct": "Config: Content Types",
-  "conf-doclib": "Config: Document Libraries",
-  "conf-mmd": "Config: Menaged Metadata",
+  "conf-lists": "Config: Lists",
+  "conf-libs": "Config: Document Libraries",
+  "conf-mmd": "Config: Managed Metadata",
   "conf-search": "Config: Search",
   "conf-uil": "Config: User Info List",
   "conf-ups": "Config: User Profiles",
-  "getting-started": "Getting Started"
+  "getting-started": "Getting Started",
+  "tables": "Tables"
 }
