@@ -296,7 +296,7 @@ Provision and seed some sample data. [See more](./cmd/seed/README.md). Which sat
 SP_SITE_URL=https://contoso.sharepoint.com/sites/site
 ```
 
-or use "ondeman" auth.
+or use "ondemand" auth.
 
 ### Source configuration
 
