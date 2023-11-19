@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.1 (2023-11-19)
+
+- The plugin is now available in the CloudQuery Hub
+
 ## 2.0.0 (2023-10-30)
 
 - Migrate to CloudQuery Plugin SDK v4

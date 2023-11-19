@@ -1,0 +1,13 @@
+{
+  "overview": "Overview",
+  "authentication": "Authentication",
+  "configuration": "Configuration",
+  "spctl": "spctl: config CLI",
+  "conf-ct": "Config: Content Types",
+  "conf-doclib": "Config: Document Libraries",
+  "conf-mmd": "Config: Menaged Metadata",
+  "conf-search": "Config: Search",
+  "conf-uil": "Config: User Info List",
+  "conf-ups": "Config: User Profiles",
+  "getting-started": "Getting Started"
+}
