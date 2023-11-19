@@ -5,7 +5,7 @@ Versioning is managed via git tags. Then a new version tag is pushed to the repo
 ## Set version
 
 ```bash
-git tag v2.0.0
+git tag v2.1.0
 ```
 
 ### Push tag
@@ -17,8 +17,8 @@ git push --tags
 ### Delete tag
 
 ```bash
-git tag -d v2.0.0-test
-git push --delete origin v2.0.0-test
+git tag -d v2.1.0-test
+git push --delete origin v2.1.0-test
 ```
 
 ## Publish
@@ -33,7 +33,7 @@ cloudquery switch koltyakov
 Package the plugin:
 
 ```bash
-go run main.go package --docs-dir docs -m @CHANGELOG.md $(git describe --tags --abbrev=0) .
+rm -rf ./dist && go run main.go package --docs-dir docs -m @CHANGELOG.md $(git describe --tags --abbrev=0) .
 ```
 
 Publish the plugin (draft):

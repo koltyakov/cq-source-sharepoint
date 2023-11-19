@@ -33,7 +33,7 @@ spec:
   name: sharepoint
   registry: cloudquery
   path: koltyakov/sharepoint
-  version: "VERSION_SOURCE_KOLTYAKOV_SHAREPOINT"
+  version: "VERSION_SOURCE_SHAREPOINT"
   destinations: ["postgresql"]
   tables: ["*"]
   spec:

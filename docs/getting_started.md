@@ -29,7 +29,7 @@ spec:
   name: sharepoint
   registry: cloudquery
   path: "koltyakov/sharepoint"
-  version: "VERSION_SOURCE_KOLTYAKOV_SHAREPOINT"
+  version: "VERSION_SOURCE_SHAREPOINT"
   destinations: ["sqlite"]
   tables: ["*"]
   spec:
@@ -112,7 +112,7 @@ Loading spec(s) from sharepoint_reg.yml, sqlite.yml
 Downloading https://github.com/koltyakov/...sharepoint_darwin_arm64.zip
 Downloading 100% |█████████████████████████████████████| (5.2/5.2 MB, 10 MB/s)
 Migration completed successfully.
-Starting sync for: sharepoint (v2.0.0) -> [sqlite (v2.4.15)]
+Starting sync for: sharepoint (v2.1.0) -> [sqlite (v2.4.15)]
 Sync completed successfully. Resources: 37478, Errors: 0, Panics: 0, Time: 21s
 ```
 

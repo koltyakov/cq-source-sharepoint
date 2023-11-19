@@ -1,8 +1,9 @@
 # Changelog
 
-## 2.0.1 (2023-11-19)
+## 2.1.0 (2023-11-19)
 
 - The plugin is now available in the CloudQuery Hub
+- fix: warning with file name field data mapping
 
 ## 2.0.0 (2023-10-30)
 
